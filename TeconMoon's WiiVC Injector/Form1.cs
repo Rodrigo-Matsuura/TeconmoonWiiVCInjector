@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -43,23 +43,6 @@ namespace TeconMoon_s_WiiVC_Injector
             Directory.CreateDirectory(TempBuildPath);
         }
 
-        //Testing
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern int GetShortPathName(String pathName, StringBuilder shortName, int cbShortName);
-        public string ShortenPath(string pathtomakesafe)
-        {
-            StringBuilder sb = new StringBuilder(1000);
-            long n = GetShortPathName(pathtomakesafe, sb, 1000);
-            if (n == 0) // check for errors
-            {
-                return Marshal.GetLastWin32Error().ToString();
-            }
-            else
-            {
-                return sb.ToString();
-            }
-
-        }
 
 
         //Specify public variables for later use (ASK ALAN)
@@ -146,17 +129,6 @@ namespace TeconMoon_s_WiiVC_Injector
             {
                 return false;
             }
-        }
-        public static string GetFullPath(string fileName)
-        {
-            var values = Environment.GetEnvironmentVariable("PATH");
-            foreach (var path in values.Split(';'))
-            {
-                var fullPath = Path.Combine(path, fileName);
-                if (File.Exists(fullPath))
-                    return fullPath;
-            }
-            return null;
         }
         public void CleanUp()
         {
