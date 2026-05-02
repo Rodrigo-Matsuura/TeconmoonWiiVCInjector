@@ -12,10 +12,11 @@ namespace TeconMoon_s_WiiVC_Injector
             InitializeComponent();
         }
 
-        //Load Drives and set drive variable on load
+        // Load current settings into the form
         private void SettingsForm_Load(object sender, EventArgs e)
         {
             BannersRepository.Text = Settings.Default.BannersRepository;
+            OutputDir.Text = Settings.Default.OutputPathFixed ?? string.Empty;
         }
 
         private void OkButton_Click(object sender, EventArgs e)

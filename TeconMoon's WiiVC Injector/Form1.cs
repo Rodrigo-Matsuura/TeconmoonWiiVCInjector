@@ -14,7 +14,6 @@ using System.Security.Cryptography;
 using System.Net;
 using System.IO.Compression;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -58,7 +57,7 @@ namespace TeconMoon_s_WiiVC_Injector
         string LauncherExeFile;
         string LauncherExeArgs;
 
-        //Specify public variables for later use (ASK ALAN)
+        // State variables for the current build/session
         string SystemType = "wii";
         string TitleIDHex;
         string TitleIDText;
@@ -226,12 +225,12 @@ namespace TeconMoon_s_WiiVC_Injector
                 return false;
             }
         }
-        private string GetRegValue(string key, string defaultValue = "00000000000000000000000000000000")
+        private string GetSavedSetting(string key, string defaultValue = "00000000000000000000000000000000")
         {
             return SettingsManager.GetSetting(key);
         }
 
-        private void SetRegValue(string key, string value)
+        private void SaveSetting(string key, string value)
         {
             SettingsManager.SetSetting(key, value);
         }
@@ -498,15 +497,15 @@ namespace TeconMoon_s_WiiVC_Injector
             //Check for building requirements when switching to the Build tab
             if (MainTabs.SelectedTab == BuildTab)
             {
-                if (!IsLinux && Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5") == null)
+                if (!IsLinux)
                 {
                     CheckForNet35();
                 }
 
                 // Load settings
-                WiiUCommonKey.Text = GetRegValue("WiiUCommonKey");
-                TitleKey.Text = GetRegValue("TitleKey");
-                AncastKey.Text = GetRegValue("AncastKey");
+                WiiUCommonKey.Text = GetSavedSetting("WiiUCommonKey");
+                TitleKey.Text = GetSavedSetting("TitleKey");
+                AncastKey.Text = GetSavedSetting("AncastKey");
                 
                 //Generate MD5 hashes for loaded keys and check them
                 WiiUCommonKey.Text = WiiUCommonKey.Text.ToUpper();
@@ -1327,9 +1326,9 @@ namespace TeconMoon_s_WiiVC_Injector
                 AncastKey.ReadOnly = false;
                 AncastKey.BackColor = Color.White;
                 SaveAncastKeyButton.Enabled = true;
-                AncastKey.Text = GetRegValue("AncastKey");
+                AncastKey.Text = GetSavedSetting("AncastKey");
                 
-                //If key is correct, lock text box for edits
+                // If key is correct, lock text box for edits
                 AncastKey.Text = AncastKey.Text.ToUpper();
                 sSourceData = AncastKey.Text;
                 tmpSource = Encoding.ASCII.GetBytes(sSourceData);
@@ -1363,7 +1362,7 @@ namespace TeconMoon_s_WiiVC_Injector
             AncastKeyHash = BitConverter.ToString(tmpHash);
             if (AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43")
             {
-                SetRegValue("AncastKey", AncastKey.Text);
+                SaveSetting("AncastKey", AncastKey.Text);
                 MessageBox.Show("The Wii U Starbuck Ancast Key has been verified.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 AncastKey.ReadOnly = true;
                 AncastKey.BackColor = Color.Lime;
@@ -1414,7 +1413,7 @@ namespace TeconMoon_s_WiiVC_Injector
             WiiUCommonKeyHash = BitConverter.ToString(tmpHash);
             if (WiiUCommonKeyHash == "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC")
             {
-                SetRegValue("WiiUCommonKey", WiiUCommonKey.Text);
+                SaveSetting("WiiUCommonKey", WiiUCommonKey.Text);
                 MessageBox.Show("The Wii U Common Key has been verified.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 MainTabs.SelectedTab = AdvancedTab;
                 MainTabs.SelectedTab = BuildTab;
@@ -1434,7 +1433,7 @@ namespace TeconMoon_s_WiiVC_Injector
             TitleKeyHash = BitConverter.ToString(tmpHash);
             if (TitleKeyHash == "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F")
             {
-                SetRegValue("TitleKey", TitleKey.Text);
+                SaveSetting("TitleKey", TitleKey.Text);
                 MessageBox.Show("The Title Key has been verified.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 MainTabs.SelectedTab = AdvancedTab;
                 MainTabs.SelectedTab = BuildTab;

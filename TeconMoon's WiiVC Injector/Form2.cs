@@ -1,14 +1,11 @@
 using System;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
-using TeconMoon_s_WiiVC_Injector.Properties;
 
 
 namespace TeconMoon_s_WiiVC_Injector
@@ -37,54 +34,34 @@ namespace TeconMoon_s_WiiVC_Injector
         }
 
         //Callable voids for commands
-        public void SpecifyDrive()
+        private void SpecifyDrive()
         {
-            if (DriveBox.SelectedValue != null)
-            {
-                SelectedDriveLetter = DriveBox.SelectedValue.ToString().Substring(0, 3);
-                DriveSpecified = true;
-            }
-            else
-            {
-                SelectedDriveLetter = "";
-                DriveSpecified = false;
-            }
+            SelectedDriveLetter = DriveBox.SelectedValue?.ToString().Substring(0, 3) ?? string.Empty;
+            DriveSpecified = !string.IsNullOrEmpty(SelectedDriveLetter);
         }
-        public void ReloadDriveList()
-        {
-            DriveBox.DataSource = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Removable).Select(d => d.Name + " (" + d.VolumeLabel + ")").ToList();
-        }
-        public void CheckForBoxes()
-        {
-            // memory card emulation
-            if (NintendontOptions.GetItemChecked(0))
-            {
-                MemcardText.Enabled = true;
-                MemcardBlocks.Enabled = true;
-                MemcardMulti.Enabled = true;
-            }
-            else
-            {
-                MemcardText.Enabled = false;
-                MemcardBlocks.Enabled = false;
-                MemcardMulti.Enabled = false;
-            }
 
-            // video width
-            if (NintendontOptions.GetItemChecked(7))
-            {
-                VideoWidth.Enabled = false;
-                VideoWidthText.Enabled = false;
-                WidthNumber.Text = "Auto";
-            }
-            else
-            {
-                VideoWidth.Enabled = true;
-                VideoWidthText.Enabled = true;
-                WidthNumber.Text = VideoWidth.Value.ToString();
-            }
+        private void ReloadDriveList()
+        {
+            DriveBox.DataSource = DriveInfo.GetDrives()
+                .Where(d => d.IsReady && d.DriveType == DriveType.Removable)
+                .Select(d => d.Name + " (" + d.VolumeLabel + ")")
+                .ToList();
         }
-        public static bool CheckForInternetConnection()
+
+        private void CheckForBoxes()
+        {
+            bool memcardEnabled = NintendontOptions.GetItemChecked(0);
+            MemcardText.Enabled = memcardEnabled;
+            MemcardBlocks.Enabled = memcardEnabled;
+            MemcardMulti.Enabled = memcardEnabled;
+
+            bool autoVideo = NintendontOptions.GetItemChecked(7);
+            VideoWidth.Enabled = !autoVideo;
+            VideoWidthText.Enabled = !autoVideo;
+            WidthNumber.Text = autoVideo ? "Auto" : VideoWidth.Value.ToString();
+        }
+
+        private static bool CheckForInternetConnection()
         {
             try
             {
@@ -244,187 +221,186 @@ namespace TeconMoon_s_WiiVC_Injector
             }
         }
 
-        public struct ConfigFile
+        private struct ConfigFile
         {
-            public uint magicBytes;
-            public uint version;
-            public uint config;
-            public uint videoMode;
-            public uint language;       // mainly for PAL gamecube games
-            public byte[] gamePath;
-            public byte[] cheatPath;
-            public uint maxPads;        // old wii only
-            public uint gameID;
-            public byte memCardBlocks;
-            public sbyte videoScale;
-            public sbyte videoOffset;
-            public byte networkProfile; // wii only
-            public uint wiiuGamepadSlot;
+            public uint MagicBytes;
+            public uint Version;
+            public uint Config;
+            public uint VideoMode;
+            public uint Language;       // mainly for PAL gamecube games
+            public byte[] GamePath;
+            public byte[] CheatPath;
+            public uint MaxPads;        // old wii only
+            public uint GameID;
+            public byte MemCardBlocks;
+            public sbyte VideoScale;
+            public sbyte VideoOffset;
+            public byte NetworkProfile; // wii only
+            public uint WiiUGamepadSlot;
         }
 
-        public enum ninconfig
+        private enum NintendontConfig
         {
-            NIN_CFG_CHEATS = 1,
-            NIN_CFG_DEBUGGER = (1 << 1), // Only for Wii Version
-            NIN_CFG_DEBUGWAIT = (1 << 2),   // Only for Wii Version
-            NIN_CFG_MEMCARDEMU = (1 << 3), // ENABLED for Wii U and newer Wii
-            NIN_CFG_CHEAT_PATH = (1 << 4),
-            NIN_CFG_FORCE_WIDE = (1 << 5),
-            NIN_CFG_FORCE_PROG = (1 << 6),
-            NIN_CFG_AUTO_BOOT = (1 << 7),
-            NIN_CFG_HID = (1 << 8),
-            NIN_CFG_REMLIMIT = (1 << 8),
-            NIN_CFG_OSREPORT = (1 << 9),
-            NIN_CFG_USB = (1 << 10),       // old bit for WiiU Widescreen
-            NIN_CFG_LED = (1 << 11),       // Only for Wii Version
-            NIN_CFG_LOG = (1 << 12),
+            Cheats = 1,
+            Debugger = (1 << 1), // Only for Wii Version
+            DebugWait = (1 << 2),   // Only for Wii Version
+            MemcardEmu = (1 << 3), // ENABLED for Wii U and newer Wii
+            CheatPath = (1 << 4),
+            ForceWide = (1 << 5),
+            ForceProg = (1 << 6),
+            AutoBoot = (1 << 7),
+            Hid = (1 << 8),
+            RemLimit = (1 << 8),
+            OsReport = (1 << 9),
+            Usb = (1 << 10),       // old bit for WiiU Widescreen
+            Led = (1 << 11),       // Only for Wii Version
+            Log = (1 << 12),
 
-            NIN_CFG_MC_MULTI = (1 << 13),
-            NIN_CFG_NATIVE_SI = (1 << 14),   // Only for Wii Version
-            NIN_CFG_WIIU_WIDE = (1 << 15),   // Only for Wii U Version
-            NIN_CFG_ARCADE_MODE = (1 << 16),
-            NIN_CFG_CC_RUMBLE = (1 << 17),
-            NIN_CFG_SKIP_IPL = (1 << 18),
-            NIN_CFG_BBA_EMU = (1 << 19),
-        };
+            Multi = (1 << 13),
+            NativeSI = (1 << 14),   // Only for Wii Version
+            WiiUWide = (1 << 15),   // Only for Wii U Version
+            ArcadeMode = (1 << 16),
+            CcRumble = (1 << 17),
+            SkipIPL = (1 << 18),
+            BbaEmu = (1 << 19),
+        }
 
-        enum ninvideomode
+        private enum NintendontVideoMode
         {
-            NIN_VID_AUTO = (0 << 16),
-            NIN_VID_FORCE = (1 << 16),
-            NIN_VID_NONE = (2 << 16),
-            NIN_VID_FORCE_DF = (4 << 16),
-            NIN_VID_MASK = NIN_VID_AUTO | NIN_VID_FORCE | NIN_VID_NONE | NIN_VID_FORCE_DF,
+            Auto = (0 << 16),
+            Force = (1 << 16),
+            None = (2 << 16),
+            ForceDf = (4 << 16),
+            Mask = Auto | Force | None | ForceDf,
 
-            NIN_VID_FORCE_PAL50 = (1 << 0), 
-            NIN_VID_FORCE_PAL60 = (1 << 1),
-            NIN_VID_FORCE_NTSC = (1 << 2),
-            NIN_VID_FORCE_MPAL = (1 << 3),
-            NIN_VID_FORCE_MASK = NIN_VID_FORCE_PAL50 | NIN_VID_FORCE_PAL60 | NIN_VID_FORCE_NTSC | NIN_VID_FORCE_MPAL,
+            ForcePal50 = (1 << 0), 
+            ForcePal60 = (1 << 1),
+            ForceNtsc = (1 << 2),
+            ForceMpal = (1 << 3),
+            ForceMask = ForcePal50 | ForcePal60 | ForceNtsc | ForceMpal,
 
-            NIN_VID_PROG = (1 << 4),   //important to prevent blackscreens
-            NIN_VID_PATCH_PAL50 = (1 << 5), //different force behaviour
-        };
+            Prog = (1 << 4),   // important to prevent blackscreens
+            PatchPal50 = (1 << 5), // different force behaviour
+        }
 
-        enum ninlanguage : uint
+        private enum NintendontLanguage : uint
         {
-            NIN_LAN_ENGLISH = 0,
-            NIN_LAN_GERMAN = 1,
-            NIN_LAN_FRENCH = 2,
-            NIN_LAN_SPANISH = 3,
-            NIN_LAN_ITALIAN = 4,
-            NIN_LAN_DUTCH = 5,
+            English = 0,
+            German = 1,
+            French = 2,
+            Spanish = 3,
+            Italian = 4,
+            Dutch = 5,
 
             /* Auto will use English for E/P region codes and 
                only other languages when these region codes are used: D/F/S/I/J  */
-            NIN_LAN_AUTO = 0xFFFFFFFF,
-        };
+            Auto = 0xFFFFFFFF,
+        }
 
         private void GenerateConfig_Click(object sender, EventArgs e)
         {
             ConfigFile nintendontCfg = new ConfigFile
             {
-                magicBytes = 0x01070CF6,
-                version = 10,
-                config = 0,
-                videoMode = 0,
-                language = 0,
-                gamePath = new byte[256],
-                cheatPath = new byte[256],
-                maxPads = 4,
-                gameID = 0,
-                memCardBlocks = 0,
-                videoScale = 0,
-                videoOffset = 0,
-                networkProfile = 0,
-                wiiuGamepadSlot = 0
+                MagicBytes = 0x01070CF6,
+                Version = 10,
+                Config = 0,
+                VideoMode = 0,
+                Language = 0,
+                GamePath = new byte[256],
+                CheatPath = new byte[256],
+                MaxPads = 4,
+                GameID = 0,
+                MemCardBlocks = 0,
+                VideoScale = 0,
+                VideoOffset = 0,
+                NetworkProfile = 0,
+                WiiUGamepadSlot = 0
             };
 
-            nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_PROG; // always required?
+            nintendontCfg.VideoMode |= (uint)NintendontVideoMode.Prog; // always required?
 
             // Memory Card Emulation
             if (NintendontOptions.GetItemChecked(0))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_MEMCARDEMU;
+                nintendontCfg.Config |= (uint)NintendontConfig.MemcardEmu;
             }
             // Cheats
             if (NintendontOptions.GetItemChecked(1))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_CHEATS;
+                nintendontCfg.Config |= (uint)NintendontConfig.Cheats;
             }
             // Cheat Path
             if (NintendontOptions.GetItemChecked(2))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_CHEAT_PATH;
+                nintendontCfg.Config |= (uint)NintendontConfig.CheatPath;
             }
             // Unlock Disc Read Speed
             if (NintendontOptions.GetItemChecked(3))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_REMLIMIT;
+                nintendontCfg.Config |= (uint)NintendontConfig.RemLimit;
             }
             // Wii Remote / Classic Controller Rumble
             if (NintendontOptions.GetItemChecked(4))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_CC_RUMBLE;
+                nintendontCfg.Config |= (uint)NintendontConfig.CcRumble;
             }
             // Triforce Arcade Mode
             if (NintendontOptions.GetItemChecked(5))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_ARCADE_MODE;
+                nintendontCfg.Config |= (uint)NintendontConfig.ArcadeMode;
             }
             // Broadband Adapter Emulation
             if (NintendontOptions.GetItemChecked(6))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_BBA_EMU;
+                nintendontCfg.Config |= (uint)NintendontConfig.BbaEmu;
             }
             // AUTO VIDEO WIDTH
             if (NintendontOptions.GetItemChecked(7))
             {
-                //nintendontCfg.videoMode &= (uint)ninvideomode.NIN_VID_MASK;
+                // nintendontCfg.VideoMode &= (uint)NintendontVideoMode.Mask;
             }
             // Patch PAL 50
             if (NintendontOptions.GetItemChecked(8))
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_PATCH_PAL50;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.PatchPal50;
 
-                if(VideoTypeMode.SelectedIndex == 0 || VideoTypeMode.SelectedIndex == 3)
+                if (VideoTypeMode.SelectedIndex == 0 || VideoTypeMode.SelectedIndex == 3)
                 {
-                    nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_PAL50;
+                    nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForcePal50;
                 }
             }
             // Force Widescreen
             if (NintendontOptions.GetItemChecked(9))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_FORCE_WIDE;
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_WIIU_WIDE;
-                //nintendontCfg.config |= (uint)ninconfig.NIN_CFG_USB;
+                nintendontCfg.Config |= (uint)NintendontConfig.ForceWide;
+                nintendontCfg.Config |= (uint)NintendontConfig.WiiUWide;
+                // nintendontCfg.Config |= (uint)NintendontConfig.Usb;
             }
             // Force Progressive Scan
             if (NintendontOptions.GetItemChecked(10))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_FORCE_PROG;
+                nintendontCfg.Config |= (uint)NintendontConfig.ForceProg;
             }
             // Skip IPL
             if (NintendontOptions.GetItemChecked(11))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_SKIP_IPL;
+                nintendontCfg.Config |= (uint)NintendontConfig.SkipIPL;
             }
             // OSReport
             if (NintendontOptions.GetItemChecked(12))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_OSREPORT;
+                nintendontCfg.Config |= (uint)NintendontConfig.OsReport;
             }
             // Log
             if (NintendontOptions.GetItemChecked(13))
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_LOG;
+                nintendontCfg.Config |= (uint)NintendontConfig.Log;
             }
 
-
-            //Memcard Multi
+            // Memcard Multi
             if (MemcardMulti.Checked)
             {
-                nintendontCfg.config |= (uint)ninconfig.NIN_CFG_MC_MULTI;
+                nintendontCfg.Config |= (uint)NintendontConfig.Multi;
             }
 
 
@@ -437,17 +413,17 @@ namespace TeconMoon_s_WiiVC_Injector
             // Force
             if (VideoForceMode.SelectedIndex == 1)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.Force;
             }
             // Force (Deflicker)
             if (VideoForceMode.SelectedIndex == 2)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_DF;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForceDf;
             }
             // None
             if (VideoForceMode.SelectedIndex == 3)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_NONE;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.None;
             }
 
 
@@ -460,50 +436,50 @@ namespace TeconMoon_s_WiiVC_Injector
             // NTSC
             if (VideoTypeMode.SelectedIndex == 1)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_NTSC;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForceNtsc;
             }
             // MPAL
             if (VideoTypeMode.SelectedIndex == 2)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_MPAL;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForceMpal;
             }
             // PAL50
             if (VideoTypeMode.SelectedIndex == 3)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_PAL50;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForcePal50;
             }
             // PAL60
             if (VideoTypeMode.SelectedIndex == 4)
             {
-                nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_PAL60;
+                nintendontCfg.VideoMode |= (uint)NintendontVideoMode.ForcePal60;
             }
 
 
             // LANGUAGE SELECTION
             if (LanguageBox.SelectedIndex == 0)
             {
-                nintendontCfg.language = 0xFFFFFFFF;
+                nintendontCfg.Language = (uint)NintendontLanguage.Auto;
             }
             else
             {
-                nintendontCfg.language = (uint)LanguageBox.SelectedIndex - 1;
+                nintendontCfg.Language = (uint)LanguageBox.SelectedIndex - 1;
             }
 
             // MEMCARD BLOCKS
-            nintendontCfg.memCardBlocks = (byte)MemcardBlocks.SelectedIndex;
+            nintendontCfg.MemCardBlocks = (byte)MemcardBlocks.SelectedIndex;
 
             // VIDEO WIDTH
             if (NintendontOptions.GetItemChecked(7))
             {
-                nintendontCfg.videoScale = 0;
+                nintendontCfg.VideoScale = 0;
             }
             else
             {
-                nintendontCfg.videoScale = (sbyte)(VideoWidth.Value - 600);
+                nintendontCfg.VideoScale = (sbyte)(VideoWidth.Value - 600);
             }
 
             // WII U GAMEPAD SLOT
-            nintendontCfg.wiiuGamepadSlot = (uint)(wiiUGamepadSlotBox.SelectedIndex);
+            nintendontCfg.WiiUGamepadSlot = (uint)wiiUGamepadSlotBox.SelectedIndex;
 
             //
             // SAVING THE FILE
@@ -547,14 +523,14 @@ namespace TeconMoon_s_WiiVC_Injector
             // write it
             using (BinaryWriter cfgFile = new BinaryWriter(File.Open(savePath, FileMode.Create) ) )
             {
-                byte[] magicBytes = BitConverter.GetBytes(nintendontCfg.magicBytes);
-                byte[] version = BitConverter.GetBytes(nintendontCfg.version);
-                byte[] config = BitConverter.GetBytes(nintendontCfg.config);
-                byte[] videoMode = BitConverter.GetBytes(nintendontCfg.videoMode);
-                byte[] language = BitConverter.GetBytes(nintendontCfg.language);
-                byte[] maxPads = BitConverter.GetBytes(nintendontCfg.maxPads);
-                byte[] gameID = BitConverter.GetBytes(nintendontCfg.gameID);
-                byte[] wiiuGamepadSlot = BitConverter.GetBytes(nintendontCfg.wiiuGamepadSlot);
+                byte[] magicBytes = BitConverter.GetBytes(nintendontCfg.MagicBytes);
+                byte[] version = BitConverter.GetBytes(nintendontCfg.Version);
+                byte[] config = BitConverter.GetBytes(nintendontCfg.Config);
+                byte[] videoMode = BitConverter.GetBytes(nintendontCfg.VideoMode);
+                byte[] language = BitConverter.GetBytes(nintendontCfg.Language);
+                byte[] maxPads = BitConverter.GetBytes(nintendontCfg.MaxPads);
+                byte[] gameID = BitConverter.GetBytes(nintendontCfg.GameID);
+                byte[] wiiuGamepadSlot = BitConverter.GetBytes(nintendontCfg.WiiUGamepadSlot);
 
 
                 if (BitConverter.IsLittleEndian)
@@ -574,14 +550,14 @@ namespace TeconMoon_s_WiiVC_Injector
                 cfgFile.Write(config);
                 cfgFile.Write(videoMode);
                 cfgFile.Write(language);
-                cfgFile.Write(nintendontCfg.gamePath);
-                cfgFile.Write(nintendontCfg.cheatPath);
+                cfgFile.Write(nintendontCfg.GamePath);
+                cfgFile.Write(nintendontCfg.CheatPath);
                 cfgFile.Write(maxPads);
                 cfgFile.Write(gameID);
-                cfgFile.Write(nintendontCfg.memCardBlocks);
-                cfgFile.Write(nintendontCfg.videoScale);
-                cfgFile.Write(nintendontCfg.videoOffset);
-                cfgFile.Write(nintendontCfg.networkProfile);
+                cfgFile.Write(nintendontCfg.MemCardBlocks);
+                cfgFile.Write(nintendontCfg.VideoScale);
+                cfgFile.Write(nintendontCfg.VideoOffset);
+                cfgFile.Write(nintendontCfg.NetworkProfile);
                 cfgFile.Write(wiiuGamepadSlot);
 
             }

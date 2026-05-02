@@ -10,5 +10,6 @@ This project is being developed via **vibe coding**. Feel free to contribute! Ev
 ## 🛠 Changes
 - Many small fixes have been applied.
 - Added support for NKIT (`.nkit.iso`) and NASOS (`.iso.dec`).
-
-This is not a complete rewrite. The source code is still *SUPER CRAPPY™* as defined by the original author.
+- Adapted the codebase for **Linux** because it was no longer acceptable to have to switch to Windows just to use this software.
+- Migrated Windows Registry settings to JSON configuration and updated the project for **Mono** compatibility.
+- Fixed build and runtime issues for Mono/MSBuild, including assembly reference handling and WinForms rendering on Linux.
