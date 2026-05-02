@@ -9,7 +9,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
 using TeconMoon_s_WiiVC_Injector.Properties;
-using Microsoft.WindowsAPICodePack.Dialogs;
+
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -165,8 +165,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     "Internet Connection Verification Failed",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1,
-                    (MessageBoxOptions)0x40000);
+                    MessageBoxDefaultButton.Button1);
                 if (dialogResult == DialogResult.No)
                 {
                     return;
@@ -203,8 +202,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     "Success",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information,
-                    MessageBoxDefaultButton.Button1,
-                    (MessageBoxOptions)0x40000);
+                    MessageBoxDefaultButton.Button1);
             }
             else // if no removable drive is specified
             {
@@ -212,8 +210,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     "Drive not specified",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1,
-                    (MessageBoxOptions)0x40000);
+                    MessageBoxDefaultButton.Button1);
 
                 if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
@@ -244,8 +241,7 @@ namespace TeconMoon_s_WiiVC_Injector
                                 "Success",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information,
-                                MessageBoxDefaultButton.Button1,
-                                (MessageBoxOptions)0x40000);
+                                MessageBoxDefaultButton.Button1);
                         }
                     }
                 }
@@ -524,8 +520,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     "Drive not specified",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1,
-                    (MessageBoxOptions)0x40000);
+                    MessageBoxDefaultButton.Button1);
                 if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
                     using (var saveFileDialog = new SaveFileDialog
@@ -601,8 +596,7 @@ namespace TeconMoon_s_WiiVC_Injector
                             , "Information"
                             , MessageBoxButtons.OK
                             , MessageBoxIcon.Information
-                            , MessageBoxDefaultButton.Button1
-                            , (MessageBoxOptions)0x40000);
+                            , MessageBoxDefaultButton.Button1);
         }
 
         private void Format_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
