@@ -1,16 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
+using TeconMoon_s_WiiVC_Injector.Properties;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -90,11 +89,9 @@ namespace TeconMoon_s_WiiVC_Injector
             try
             {
                 using (var client = new WebClient())
+                using (client.OpenRead("http://clients3.google.com/generate_204"))
                 {
-                    using (client.OpenRead("http://clients3.google.com/generate_204"))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             catch
@@ -149,7 +146,7 @@ namespace TeconMoon_s_WiiVC_Injector
         }
         private void VideoTypeMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (VideoForceMode.SelectedIndex != 0 & VideoForceMode.SelectedIndex != 3 & VideoTypeMode.SelectedIndex == 0)
+            if (VideoForceMode.SelectedIndex != 0 && VideoForceMode.SelectedIndex != 3 && VideoTypeMode.SelectedIndex == 0)
             {
                 VideoTypeMode.SelectedIndex = 1;
             }
@@ -158,18 +155,18 @@ namespace TeconMoon_s_WiiVC_Injector
         //Buttons that make changes to SD Card
         private void NintendontUpdate_Click(object sender, EventArgs e)
         {
-            string downloadPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\Download\\";
-            string tempPath = downloadPath + "apps\\nintendont\\";
-            string SDPath = SelectedDriveLetter + "apps\\nintendont";
+            string downloadPath = Path.Combine(Path.GetTempPath(), "WiiVCInjector", "SOURCETEMP", "Download");
+            string tempPath = Path.Combine(downloadPath, "apps", "nintendont");
+            string sdPath = Path.Combine(SelectedDriveLetter, "apps", "nintendont");
 
-            if (CheckForInternetConnection() == false)
+            if (!CheckForInternetConnection())
             {
-                DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download Nintendont anyway?"
-                                                            , "Internet Connection Verification Failed"
-                                                            , MessageBoxButtons.YesNo
-                                                            , MessageBoxIcon.Question
-                                                            , MessageBoxDefaultButton.Button1
-                                                            , (MessageBoxOptions)0x40000);
+                DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download Nintendont anyway?",
+                    "Internet Connection Verification Failed",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1,
+                    (MessageBoxOptions)0x40000);
                 if (dialogResult == DialogResult.No)
                 {
                     return;
@@ -179,52 +176,50 @@ namespace TeconMoon_s_WiiVC_Injector
             ActionStatus.Text = "Downloading...";
             ActionStatus.Refresh();
             Directory.CreateDirectory(tempPath);
-            var client = new WebClient();
-            client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/loader/loader.dol", tempPath + "boot.dol");
-            client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/meta.xml", tempPath + "meta.xml");
-            client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/icon.png", tempPath + "icon.png");
-            ActionStatus.Text = "";
+            using (var client = new WebClient())
+            {
+                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/loader/loader.dol", Path.Combine(tempPath, "boot.dol"));
+                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/meta.xml", Path.Combine(tempPath, "meta.xml"));
+                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/icon.png", Path.Combine(tempPath, "icon.png"));
+            }
+            ActionStatus.Text = string.Empty;
 
             if (DriveSpecified)
             {
-                if (Directory.Exists(SelectedDriveLetter + "apps\\nintendont"))
+                if (Directory.Exists(sdPath))
                 {
-                    Directory.Delete(SelectedDriveLetter + "apps\\nintendont", true);
+                    Directory.Delete(sdPath, true);
                 }
-                Directory.CreateDirectory(SelectedDriveLetter + "apps\\nintendont");
+                Directory.CreateDirectory(sdPath);
 
-
-                DirectoryInfo dir = new DirectoryInfo(tempPath);
-                FileInfo[] files = dir.GetFiles();
-
-                foreach (FileInfo file in files)
+                var dir = new DirectoryInfo(tempPath);
+                foreach (FileInfo file in dir.GetFiles())
                 {
-                    string outPath = Path.Combine(SDPath, file.Name);
+                    string outPath = Path.Combine(sdPath, file.Name);
                     file.CopyTo(outPath, true);
                 }
 
-                MessageBox.Show("Download complete."
-                                , "Success"
-                                , MessageBoxButtons.OK
-                                , MessageBoxIcon.Information
-                                , MessageBoxDefaultButton.Button1
-                                , (MessageBoxOptions)0x40000);
-
+                MessageBox.Show("Download complete.",
+                    "Success",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information,
+                    MessageBoxDefaultButton.Button1,
+                    (MessageBoxOptions)0x40000);
             }
             else // if no removable drive is specified
             {
-                DialogResult dialogResult = MessageBox.Show("SD Card not specified.\nDo you wish to save Nintendont somewhere else?"
-                                                            , "Drive not specified"
-                                                            , MessageBoxButtons.YesNo
-                                                            , MessageBoxIcon.Question
-                                                            , MessageBoxDefaultButton.Button1
-                                                            , (MessageBoxOptions)0x40000);
+                DialogResult dialogResult = MessageBox.Show("SD Card not specified.\nDo you wish to save Nintendont somewhere else?",
+                    "Drive not specified",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1,
+                    (MessageBoxOptions)0x40000);
 
-                if (dialogResult == DialogResult.Yes)   // if YES, ask where to save the file
+                if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
                     DateTime dateTime = DateTime.UtcNow.Date;
 
-                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    using (var saveFileDialog = new SaveFileDialog
                     {
                         Title = "Save Nintendont zip file",
                         CheckPathExists = true,
@@ -232,41 +227,27 @@ namespace TeconMoon_s_WiiVC_Injector
                         Filter = "Zip Files (*.zip)|*.zip",
                         FilterIndex = 2,
                         RestoreDirectory = true,
-                        FileName = "Nintendont-" + dateTime.ToString("dd.MMM.yyyy") +  ".zip"
-                    };
-
-                    // if a path is decided, store it
-                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                        FileName = $"Nintendont-{dateTime:dd.MMM.yyyy}.zip"
+                    })
                     {
-                        string sourcePath = downloadPath;
-                        string zipPath = saveFileDialog.FileName;
-
-                        if (File.Exists(zipPath))
+                        if (saveFileDialog.ShowDialog() == DialogResult.OK)
                         {
-                            File.Delete(zipPath);
+                            string zipPath = saveFileDialog.FileName;
+
+                            if (File.Exists(zipPath))
+                            {
+                                File.Delete(zipPath);
+                            }
+
+                            ZipFile.CreateFromDirectory(downloadPath, zipPath);
+                            MessageBox.Show("Download complete.",
+                                "Success",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information,
+                                MessageBoxDefaultButton.Button1,
+                                (MessageBoxOptions)0x40000);
                         }
-
-                        ZipFile.CreateFromDirectory(sourcePath, zipPath);
-                        MessageBox.Show("Download complete."
-                                        , "Success"
-                                        , MessageBoxButtons.OK
-                                        , MessageBoxIcon.Information
-                                        , MessageBoxDefaultButton.Button1
-                                        , (MessageBoxOptions)0x40000);
                     }
-                    
-
-                    // else, stop the saving process
-                    else
-                    {
-                        return;
-                    }
-
-                }
-                //  if the user doesn't want to save, stop
-                else
-                {
-                    return;
                 }
             }
         }
@@ -534,20 +515,20 @@ namespace TeconMoon_s_WiiVC_Injector
 
             //
             // SAVING THE FILE
-            string savePath = SelectedDriveLetter + "nincfg.bin";
+            string savePath = Path.Combine(SelectedDriveLetter, "nincfg.bin");
 
-            // if removable drive isdn't specified, save file manually
-            if (DriveSpecified == false)
+            // if removable drive isn't specified, save file manually
+            if (!DriveSpecified)
             {
-                DialogResult dialogResult = MessageBox.Show("SD card not specified.\nDo you wish to save the file somewhere else?"
-                                                            , "Drive not specified"
-                                                            , MessageBoxButtons.YesNo
-                                                            , MessageBoxIcon.Question
-                                                            , MessageBoxDefaultButton.Button1
-                                                            , (MessageBoxOptions)0x40000);
-                if (dialogResult == DialogResult.Yes)   // if YES, ask where to save the file
+                DialogResult dialogResult = MessageBox.Show("SD card not specified.\nDo you wish to save the file somewhere else?",
+                    "Drive not specified",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1,
+                    (MessageBoxOptions)0x40000);
+                if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
-                    SaveFileDialog saveFileDialog = new SaveFileDialog
+                    using (var saveFileDialog = new SaveFileDialog
                     {
                         Title = "Save nincfg.bin",
                         CheckPathExists = true,
@@ -556,22 +537,18 @@ namespace TeconMoon_s_WiiVC_Injector
                         FilterIndex = 2,
                         RestoreDirectory = true,
                         FileName = "nincfg.bin"
-                    };
-
-                    // if a path is decided, store it
-                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    })
                     {
-                        savePath = saveFileDialog.FileName;
+                        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            savePath = saveFileDialog.FileName;
+                        }
+                        else
+                        {
+                            return;
+                        }
                     }
-
-                    // else, stop the saving process
-                    else
-                    {
-                        return;
-                    }
-
                 }
-                //  if the user doesn't want to save, stop
                 else
                 {
                     return;

@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Media;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.Win32;
@@ -14,8 +10,7 @@ using System.Security.Cryptography;
 using System.Net;
 using System.IO.Compression;
 using System.Diagnostics;
-using Microsoft.VisualBasic.FileIO;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TeconMoon_s_WiiVC_Injector
@@ -25,20 +20,25 @@ namespace TeconMoon_s_WiiVC_Injector
         public WiiVC_Injector()
         {
             InitializeComponent();
-            this.Text = string.Format(this.Text, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
-            //Check for if .Net v3.5 component is installed
+            this.Text = string.Format(this.Text, Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            
+            // Check for if .Net v3.5 component is installed
             CheckForNet35();
-            //Delete Temporary Root Folder if it exists
+
+            // Delete Temporary Root Folder if it exists
             if (Directory.Exists(TempRootPath))
             {
                 Directory.Delete(TempRootPath, true);
             }
             Directory.CreateDirectory(TempRootPath);
-            //Extract Tools to temp folder
-            File.WriteAllBytes(TempRootPath + "TOOLDIR.zip", Properties.Resources.TOOLDIR);
-            ZipFile.ExtractToDirectory(TempRootPath + "TOOLDIR.zip", TempRootPath);
-            File.Delete(TempRootPath + "TOOLDIR.zip");
-            //Create Source and Build directories
+
+            // Extract Tools to temp folder
+            string toolZipPath = Path.Combine(TempRootPath, "TOOLDIR.zip");
+            File.WriteAllBytes(toolZipPath, Properties.Resources.TOOLDIR);
+            ZipFile.ExtractToDirectory(toolZipPath, TempRootPath);
+            File.Delete(toolZipPath);
+
+            // Create Source and Build directories
             Directory.CreateDirectory(TempSourcePath);
             Directory.CreateDirectory(TempBuildPath);
         }
@@ -46,6 +46,11 @@ namespace TeconMoon_s_WiiVC_Injector
 
 
         //Specify public variables for later use (ASK ALAN)
+        // Specify constants for magic numbers
+        private const long WiiGameType = 2745048157;
+        private const long GCGameType = 4440324665927270400;
+
+        // Specify public variables for later use (ASK ALAN)
         string SystemType = "wii";
         string TitleIDHex;
         string TitleIDText;
@@ -89,16 +94,19 @@ namespace TeconMoon_s_WiiVC_Injector
         ProcessStartInfo Launcher;
         string LauncherExeFile;
         string LauncherExeArgs;
-        string JNUSToolDownloads = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\JNUSToolDownloads\\";
-        string TempRootPath = Path.GetTempPath() + "WiiVCInjector\\";
-        string TempSourcePath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\";
-        string TempBuildPath = Path.GetTempPath() + "WiiVCInjector\\BUILDDIR\\";
-        string TempToolsPath = Path.GetTempPath() + "WiiVCInjector\\TOOLDIR\\";
-        string TempIconPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png";
-        string TempBannerPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png";
-        string TempDrcPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootDrcTex.png";
-        string TempLogoPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootLogoTex.png";
-        string TempSoundPath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootSound.wav";
+
+        static readonly string JNUSToolDownloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "JNUSToolDownloads") + Path.DirectorySeparatorChar;
+        static readonly string TempRootPath = Path.Combine(Path.GetTempPath(), "WiiVCInjector") + Path.DirectorySeparatorChar;
+        static readonly string TempSourcePath = Path.Combine(TempRootPath, "SOURCETEMP") + Path.DirectorySeparatorChar;
+        static readonly string TempBuildPath = Path.Combine(TempRootPath, "BUILDDIR") + Path.DirectorySeparatorChar;
+        static readonly string TempToolsPath = Path.Combine(TempRootPath, "TOOLDIR") + Path.DirectorySeparatorChar;
+        
+        static readonly string TempIconPath = Path.Combine(TempSourcePath, "iconTex.png");
+        static readonly string TempBannerPath = Path.Combine(TempSourcePath, "bootTvTex.png");
+        static readonly string TempDrcPath = Path.Combine(TempSourcePath, "bootDrcTex.png");
+        static readonly string TempLogoPath = Path.Combine(TempSourcePath, "bootLogoTex.png");
+        static readonly string TempSoundPath = Path.Combine(TempSourcePath, "bootSound.wav");
+        
         string OGfilepath;
         string selectedOutputPath;
 
@@ -118,11 +126,9 @@ namespace TeconMoon_s_WiiVC_Injector
             try
             {
                 using (var client = new WebClient())
+                using (client.OpenRead("http://clients3.google.com/generate_204"))
                 {
-                    using (client.OpenRead("http://clients3.google.com/generate_204"))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             catch
@@ -149,31 +155,42 @@ namespace TeconMoon_s_WiiVC_Injector
 
         public void DownloadFromRepo(string cucholixRepoID)
         {
-            var client = new WebClient();
-            IconPreviewBox.Load(Properties.Settings.Default.BannersRepository + SystemType + "/" + cucholixRepoID + "/iconTex.png");
-            if (File.Exists(Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png")) { File.Delete(Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png"); }
-            client.DownloadFile(IconPreviewBox.ImageLocation, Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png");
-            IconSourceDirectory.Text = "iconTex.png downloaded from Cucholix's Repo";
-            IconSourceDirectory.ForeColor = Color.Black;
-            FlagIconSpecified = true;
-            BannerPreviewBox.Load(Properties.Settings.Default.BannersRepository + SystemType + "/" + cucholixRepoID + "/bootTvTex.png");
-            if (File.Exists(Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png")) { File.Delete(Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png"); }
-            client.DownloadFile(BannerPreviewBox.ImageLocation, Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png");
-            BannerSourceDirectory.Text = "bootTvTex.png downloaded from Cucholix's Repo";
-            BannerSourceDirectory.ForeColor = Color.Black;
-            FlagBannerSpecified = true;
-            FlagRepo = true;
+            using (var client = new WebClient())
+            {
+                string baseUrl = Properties.Settings.Default.BannersRepository;
+                string iconUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/iconTex.png";
+                string bannerUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/bootTvTex.png";
+
+                IconPreviewBox.Load(iconUrl);
+                if (File.Exists(TempIconPath)) { File.Delete(TempIconPath); }
+                client.DownloadFile(IconPreviewBox.ImageLocation, TempIconPath);
+                
+                IconSourceDirectory.Text = "iconTex.png downloaded from Cucholix's Repo";
+                IconSourceDirectory.ForeColor = Color.Black;
+                FlagIconSpecified = true;
+
+                BannerPreviewBox.Load(bannerUrl);
+                if (File.Exists(TempBannerPath)) { File.Delete(TempBannerPath); }
+                client.DownloadFile(BannerPreviewBox.ImageLocation, TempBannerPath);
+                
+                BannerSourceDirectory.Text = "bootTvTex.png downloaded from Cucholix's Repo";
+                BannerSourceDirectory.ForeColor = Color.Black;
+                FlagBannerSpecified = true;
+                FlagRepo = true;
+            }
         }
         //Called from RepoDownload_Click to check if files exist before downloading
         private bool RemoteFileExists(string url)
         {
             try
             {
-                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+                var request = WebRequest.Create(url) as HttpWebRequest;
+                if (request == null) return false;
                 request.Method = "HEAD";
-                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                response.Close();
-                return (response.StatusCode == HttpStatusCode.OK);
+                using (var response = request.GetResponse() as HttpWebResponse)
+                {
+                    return response != null && response.StatusCode == HttpStatusCode.OK;
+                }
             }
             catch
             {
@@ -334,9 +351,11 @@ namespace TeconMoon_s_WiiVC_Injector
         }
         private void WiiNAND_CheckedChanged(object sender, EventArgs e)
         {
-            if (WiiNAND.Checked)
+            if (!WiiNAND.Checked) return;
+
+            bool validId = false;
+            while (!validId)
             {
-                WiiNANDLoopback:
                 WiiVMC.Checked = false;
                 WiiVMC.Enabled = false;
                 Wiimmfi.Checked = false;
@@ -374,23 +393,27 @@ namespace TeconMoon_s_WiiVC_Injector
                 DisableTrimming.Checked = false;
                 DisableTrimming.Enabled = false;
                 Force43NAND.Enabled = true;
-                if (NoGamePadEmu.Checked == false & CCEmu.Checked == false & HorWiiMote.Checked == false & VerWiiMote.Checked == false & ForceCC.Checked == false & ForceNoCC.Checked == false)
+
+                if (!NoGamePadEmu.Checked && !CCEmu.Checked && !HorWiiMote.Checked && !VerWiiMote.Checked && !ForceCC.Checked && !ForceNoCC.Checked)
                 {
                     NoGamePadEmu.Checked = true;
                     GamePadEmuLayout.Enabled = true;
                     DRCUSE = "1";
                 }
-                GameSourceDirectory.Text = Microsoft.VisualBasic.Interaction.InputBox("Enter your installed Wii Channel's 4-letter Title ID. If you don't know it, open a WAD for the channel in something like ShowMiiWads to view it.", "Enter your WAD's Title ID", "XXXX", 0, 0);
-                if (GameSourceDirectory.Text == "")
+
+                string inputId = Microsoft.VisualBasic.Interaction.InputBox("Enter your installed Wii Channel's 4-letter Title ID. If you don't know it, open a WAD for the channel in something like ShowMiiWads to view it.", "Enter your WAD's Title ID", "XXXX", 0, 0);
+                
+                if (string.IsNullOrEmpty(inputId))
                 {
                     GameSourceDirectory.ForeColor = Color.Red;
                     GameSourceDirectory.Text = "Title ID specification cancelled, reselect vWii NAND Title Launcher to specify";
                     FlagGameSpecified = false;
-                    goto skipWiiNandLoopback;
+                    break;
                 }
-                if (GameSourceDirectory.Text.Length == 4)
+
+                if (inputId.Length == 4)
                 {
-                    GameSourceDirectory.Text = GameSourceDirectory.Text.ToUpper();
+                    GameSourceDirectory.Text = inputId.ToUpper();
                     GameSourceDirectory.ForeColor = Color.Black;
                     FlagGameSpecified = true;
                     SystemType = "wiiware";
@@ -398,28 +421,27 @@ namespace TeconMoon_s_WiiVC_Injector
                     TitleIDLabel.Text = "N/A";
                     TitleIDText = GameSourceDirectory.Text;
                     CucholixRepoID = GameSourceDirectory.Text;
-                    char[] HexIDBuild = GameSourceDirectory.Text.ToCharArray();
+
                     StringBuilder stringBuilder = new StringBuilder();
-                    foreach (char c in HexIDBuild)
+                    foreach (char c in GameSourceDirectory.Text)
                     {
-                        stringBuilder.Append(((Int16)c).ToString("X"));
+                        stringBuilder.Append(((short)c).ToString("X2"));
                     }
                     PackedTitleIDLine.Text = "00050002" + stringBuilder.ToString();
+                    validId = true;
                 }
                 else
                 {
                     GameSourceDirectory.ForeColor = Color.Red;
                     GameSourceDirectory.Text = "Invalid Title ID";
                     FlagGameSpecified = false;
-                    MessageBox.Show("Only 4 characters can be used, try again. Example: The Star Fox 64 (USA) Channel's Title ID is NADE01, so you would specify NADE as the Title ID"
-                                    , "Invalid Title ID"
-                                    , MessageBoxButtons.OK
-                                    , MessageBoxIcon.Warning
-                                    , MessageBoxDefaultButton.Button1,
-                                    (MessageBoxOptions)0x40000);
-                    goto WiiNANDLoopback;
+                    MessageBox.Show("Only 4 characters can be used, try again. Example: The Star Fox 64 (USA) Channel's Title ID is NADE01, so you would specify NADE as the Title ID",
+                        "Invalid Title ID",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button1,
+                        (MessageBoxOptions)0x40000);
                 }
-                skipWiiNandLoopback:;
             }
         }
         private void GCRetail_CheckedChanged(object sender, EventArgs e)
@@ -488,335 +510,205 @@ namespace TeconMoon_s_WiiVC_Injector
         //Performs actions when switching tabs
         private void MainTabs_SelectedIndexChanged(object sender, EventArgs e)
         {
-            //Disables Radio buttons when switching away from the main tab
-            if (MainTabs.SelectedTab == SourceFilesTab)
-            {
-                WiiRetail.Enabled = true;
-                WiiHomebrew.Enabled = true;
-                WiiNAND.Enabled = true;
-                GCRetail.Enabled = true;
-            }
-            else
-            {
-                WiiRetail.Enabled = false;
-                WiiHomebrew.Enabled = false;
-                WiiNAND.Enabled = false;
-                GCRetail.Enabled = false;
-            }
-            //Check for building requirements when switching to the Build tab
+            // Disables Radio buttons when switching away from the main tab
+            bool isSourceFilesTab = MainTabs.SelectedTab == SourceFilesTab;
+            WiiRetail.Enabled = isSourceFilesTab;
+            WiiHomebrew.Enabled = isSourceFilesTab;
+            WiiNAND.Enabled = isSourceFilesTab;
+            GCRetail.Enabled = isSourceFilesTab;
+
+            // Check for building requirements when switching to the Build tab
             if (MainTabs.SelectedTab == BuildTab)
             {
-                //Initialize Registry values if they don't exist and pull values from them if they do
-                if (Registry.CurrentUser.CreateSubKey("WiiVCInjector").GetValue("WiiUCommonKey") == null)
+                using (var key = Registry.CurrentUser.CreateSubKey("WiiVCInjector"))
                 {
-                    Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("WiiUCommonKey", "00000000000000000000000000000000");
-                }
-                WiiUCommonKey.Text = Registry.CurrentUser.OpenSubKey("WiiVCInjector").GetValue("WiiUCommonKey").ToString();
-                if (Registry.CurrentUser.CreateSubKey("WiiVCInjector").GetValue("TitleKey") == null)
-                {
-                    Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("TitleKey", "00000000000000000000000000000000");
-                }
-                TitleKey.Text = Registry.CurrentUser.OpenSubKey("WiiVCInjector").GetValue("TitleKey").ToString();
-                Registry.CurrentUser.OpenSubKey("WiiVCInjector").Close();
-                //Generate MD5 hashes for loaded keys and check them
-                WiiUCommonKey.Text = WiiUCommonKey.Text.ToUpper();
-                sSourceData = WiiUCommonKey.Text;
-                tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-                tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-                WiiUCommonKeyHash = BitConverter.ToString(tmpHash);
-                if (WiiUCommonKeyHash == "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC")
-                {
-                    CommonKeyGood = true;
-                    WiiUCommonKey.ReadOnly = true;
-                    WiiUCommonKey.BackColor = Color.Lime;
-                }
-                else
-                {
-                    CommonKeyGood = false;
-                    WiiUCommonKey.ReadOnly = false;
-                    WiiUCommonKey.BackColor = Color.White;
-                }
-                TitleKey.Text = TitleKey.Text.ToUpper();
-                sSourceData = TitleKey.Text;
-                tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-                tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-                TitleKeyHash = BitConverter.ToString(tmpHash);
-                if (TitleKeyHash == "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F")
-                {
-                    TitleKeyGood = true;
-                    TitleKey.ReadOnly = true;
-                    TitleKey.BackColor = Color.Lime;
-                }
-                else
-                {
-                    TitleKeyGood = false;
-                    TitleKey.ReadOnly = false;
-                    TitleKey.BackColor = Color.White;
-                }
-                AncastKey.Text = AncastKey.Text.ToUpper();
-                sSourceData = AncastKey.Text;
-                tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-                tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-                AncastKeyHash = BitConverter.ToString(tmpHash);
-                if (AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43")
-                {
-                    AncastKeyGood = true;
-                }
-                else
-                {
-                    AncastKeyGood = false;
-                }
-                //Final check for if all requirements are good
-                if (FlagGameSpecified & FlagIconSpecified & FlagBannerSpecified)
-                {
-                    SourceCheck.ForeColor = Color.Green;
-                    BuildFlagSource = true;
-                }
-                else
-                {
-                    SourceCheck.ForeColor = Color.Red;
-                    BuildFlagSource = false;
-                }
-                if (PackedTitleLine1.Text != "" & PackedTitleIDLine.TextLength == 16)
-                {
-                    MetaCheck.ForeColor = Color.Green;
-                    BuildFlagMeta = true;
-                }
-                else
-                {
-                    MetaCheck.ForeColor = Color.Red;
-                    BuildFlagMeta = false;
+                    if (key.GetValue("WiiUCommonKey") == null)
+                    {
+                        key.SetValue("WiiUCommonKey", "00000000000000000000000000000000");
+                    }
+                    WiiUCommonKey.Text = key.GetValue("WiiUCommonKey").ToString().ToUpper();
+
+                    if (key.GetValue("TitleKey") == null)
+                    {
+                        key.SetValue("TitleKey", "00000000000000000000000000000000");
+                    }
+                    TitleKey.Text = key.GetValue("TitleKey").ToString().ToUpper();
                 }
 
-                if (CustomMainDol.Checked == false)
+                using (var md5 = MD5.Create())
+                {
+                    // Generate MD5 hashes for loaded keys and check them
+                    WiiUCommonKeyHash = GetMd5Hash(md5, WiiUCommonKey.Text);
+                    if (WiiUCommonKeyHash == "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC")
+                    {
+                        CommonKeyGood = true;
+                        WiiUCommonKey.ReadOnly = true;
+                        WiiUCommonKey.BackColor = Color.Lime;
+                    }
+                    else
+                    {
+                        CommonKeyGood = false;
+                        WiiUCommonKey.ReadOnly = false;
+                        WiiUCommonKey.BackColor = Color.White;
+                    }
+
+                    TitleKeyHash = GetMd5Hash(md5, TitleKey.Text);
+                    if (TitleKeyHash == "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F")
+                    {
+                        TitleKeyGood = true;
+                        TitleKey.ReadOnly = true;
+                        TitleKey.BackColor = Color.Lime;
+                    }
+                    else
+                    {
+                        TitleKeyGood = false;
+                        TitleKey.ReadOnly = false;
+                        TitleKey.BackColor = Color.White;
+                    }
+
+                    AncastKeyHash = GetMd5Hash(md5, AncastKey.Text.ToUpper());
+                    AncastKeyGood = AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43";
+                }
+
+                // Final check for if all requirements are good
+                BuildFlagSource = FlagGameSpecified && FlagIconSpecified && FlagBannerSpecified;
+                SourceCheck.ForeColor = BuildFlagSource ? Color.Green : Color.Red;
+
+                BuildFlagMeta = !string.IsNullOrEmpty(PackedTitleLine1.Text) && PackedTitleIDLine.TextLength == 16;
+                MetaCheck.ForeColor = BuildFlagMeta ? Color.Green : Color.Red;
+
+                if (!CustomMainDol.Checked)
                 {
                     AdvanceCheck.ForeColor = Color.Green;
                     BuildFlagAdvance = true;
                 }
                 else
                 {
-                    if (Path.GetExtension(OpenMainDol.FileName) == ".dol")
-                    {
-                        AdvanceCheck.ForeColor = Color.Green;
-                        BuildFlagAdvance = true;
-                    }
-                    else
-                    {
-                        AdvanceCheck.ForeColor = Color.Red;
-                        BuildFlagAdvance = false;
-                    }
+                    BuildFlagAdvance = Path.GetExtension(OpenMainDol.FileName).Equals(".dol", StringComparison.OrdinalIgnoreCase);
+                    AdvanceCheck.ForeColor = BuildFlagAdvance ? Color.Green : Color.Red;
                 }
 
-
-                //Skip Ancast Key if box not checked in advanced
-                if (C2WPatchFlag.Checked == false)
+                // Skip Ancast Key if box not checked in advanced
+                if (!C2WPatchFlag.Checked)
                 {
-                    if (CommonKeyGood & TitleKeyGood)
-                    {
-                        KeysCheck.ForeColor = Color.Green;
-                        BuildFlagKeys = true;
-                    }
-                    else
-                    {
-                        KeysCheck.ForeColor = Color.Red;
-                        BuildFlagKeys = false;
-                    }
+                    BuildFlagKeys = CommonKeyGood && TitleKeyGood;
                 }
                 else
                 {
-                    if (CommonKeyGood & TitleKeyGood & AncastKeyGood)
-                    {
-                        KeysCheck.ForeColor = Color.Green;
-                        BuildFlagKeys = true;
-                    }
-                    else
-                    {
-                        KeysCheck.ForeColor = Color.Red;
-                        BuildFlagKeys = false;
-                    }
+                    BuildFlagKeys = CommonKeyGood && TitleKeyGood && AncastKeyGood;
                 }
-                //Enable Build Button
-                if (BuildFlagSource & BuildFlagMeta & BuildFlagAdvance & BuildFlagKeys)
-                {
-                    TheBigOneTM.Enabled = true;
-                }
-                else
-                {
-                    TheBigOneTM.Enabled = false;
-                }
+                KeysCheck.ForeColor = BuildFlagKeys ? Color.Green : Color.Red;
 
-
+                // Enable Build Button
+                TheBigOneTM.Enabled = BuildFlagSource && BuildFlagMeta && BuildFlagAdvance && BuildFlagKeys;
             }
+        }
+
+        private string GetMd5Hash(MD5 md5Hash, string input)
+        {
+            byte[] data = md5Hash.ComputeHash(Encoding.ASCII.GetBytes(input));
+            return BitConverter.ToString(data);
         }
 
         //Events for the "Required Source Files" Tab
         private void GameSourceButton_Click(object sender, EventArgs e)
         {
-            if (OpenGame.ShowDialog() == DialogResult.OK)
+            if (OpenGame.ShowDialog() != DialogResult.OK) return;
+
+            // delete any previous files
+            CleanUp();
+
+            GameSourceDirectory.Text = OpenGame.FileName;
+            GameSourceDirectory.ForeColor = Color.Black;
+            FlagGameSpecified = true;
+            byte[] idBytes;
+
+            // Get values from game file
+            using (var reader = new BinaryReader(File.OpenRead(OpenGame.FileName)))
             {
-                // delete any previous files
-                CleanUp();
-
-                GameSourceDirectory.Text = OpenGame.FileName;
-                GameSourceDirectory.ForeColor = Color.Black;
-                FlagGameSpecified = true;
-                byte[] idBytes = new byte[4];
-                //Get values from game file
-                using (var reader = new BinaryReader(File.OpenRead(OpenGame.FileName)))
-                {
-                    reader.BaseStream.Position = 0;
-                    TitleIDInt = reader.ReadInt32();
-                    idBytes = BitConverter.GetBytes(TitleIDInt);
-                    if (!BitConverter.IsLittleEndian)
-                    {
-                        Array.Reverse(idBytes);
-                    }
-                    string idString = new string(Encoding.ASCII.GetChars(idBytes));
-                    
-                    //WBFS Check
-                    if (idString == "WBFS") //Performs actions if the header indicates a WBFS file
-                    {
-                        FlagWBFS = true;
-                        reader.BaseStream.Position = 0x200;
-                        TitleIDInt = reader.ReadInt32();
-                        reader.BaseStream.Position = 0x218;
-                        GameType = reader.ReadInt64();
-                        TempString = "";
-                        reader.BaseStream.Position = 0x220;
-                        while ((int)(TempChar = reader.ReadChar()) != 0) TempString = TempString + TempChar;
-                        InternalGameName = TempString;
-                        TempString = "";
-                        reader.BaseStream.Position = 0x200;
-                        while ((int)(TempChar = reader.ReadChar()) != 0) TempString = TempString + TempChar;
-                        CucholixRepoID = TempString;
-                    }
-                    else
-                    {
-                        if (TitleIDInt == 65536) //Performs actions if the header indicates a DOL file
-                        {
-                            reader.BaseStream.Position = 0x2A0;
-                            TitleIDInt = reader.ReadInt32();
-                            InternalGameName = "N/A";
-                        }
-                        else //Performs actions if the header indicates a normal Wii / GC iso
-                        {
-                            FlagWBFS = false;
-                            FlagNKIT = false;
-                            FlagNASOS = false;
-                            uint startOffset = 0;
-                            // NASOS check
-                            if (idString == "WII5")
-                            {
-                                FlagNASOS = true;
-                                startOffset = 0x1182800;
-                            }
-                            else if (idString == "WII9")
-                            {
-                                FlagNASOS = true;
-                                startOffset = 0x1FB5000;
-                            }
-                            // read game info
-                            reader.BaseStream.Position = startOffset;
-                            TitleIDInt = reader.ReadInt32();
-                            reader.BaseStream.Position = startOffset + 0x18;
-                            GameType = reader.ReadInt64();
-                            TempString = "";
-                            reader.BaseStream.Position = startOffset + 0x20;
-                            while ((int)(TempChar = reader.ReadChar()) != 0)
-                            {
-                                TempString = TempString + TempChar;
-                            }
-                            InternalGameName = TempString;
-                            TempString = "";
-                            reader.BaseStream.Position = startOffset + 0x00;
-                            while ((int)(TempChar = reader.ReadChar()) != 0)
-                            {
-                                TempString = TempString + TempChar;
-                            }
-                            CucholixRepoID = TempString;
-
-                            // NKIT check
-                            if(!FlagNASOS)
-                            {
-                                reader.BaseStream.Position = 0x200;
-                                idBytes = reader.ReadBytes(4);
-                                idString = new string(Encoding.ASCII.GetChars(idBytes));
-                                if (idString == "NKIT")
-                                {
-                                    FlagNKIT = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                //Flag if GameType Int doesn't match current SystemType
-                if (SystemType == "wii" && GameType != 2745048157)
-                {
-                    GameSourceDirectory.Text = "Game file has not been specified";
-                    GameSourceDirectory.ForeColor = Color.Red;
-                    FlagGameSpecified = false;
-                    GameNameLabel.Text = "";
-                    TitleIDLabel.Text = "";
-                    TitleIDInt = 0;
-                    TitleIDHex = "";
-                    GameType = 0;
-                    CucholixRepoID = "";
-                    PackedTitleLine1.Text = "";
-                    PackedTitleIDLine.Text = "";
-                    MessageBox.Show("This is not a Wii image. It will not be loaded."
-                                    , "Error"
-                                    , MessageBoxButtons.OK
-                                    , MessageBoxIcon.Error
-                                    , MessageBoxDefaultButton.Button1
-                                    , (MessageBoxOptions)0x40000);
-                    goto EndOfGameSelection;
-                }
-                if (SystemType == "gcn" && GameType != 4440324665927270400)
-                {
-                    GameSourceDirectory.Text = "Game file has not been specified";
-                    GameSourceDirectory.ForeColor = Color.Red;
-                    FlagGameSpecified = false;
-                    GameNameLabel.Text = "";
-                    TitleIDLabel.Text = "";
-                    TitleIDInt = 0;
-                    TitleIDHex = "";
-                    GameType = 0;
-                    CucholixRepoID = "";
-                    PackedTitleLine1.Text = "";
-                    PackedTitleIDLine.Text = "";
-                    MessageBox.Show("This is not a GameCube image. It will not be loaded."
-                                    , "Error"
-                                    , MessageBoxButtons.OK
-                                    , MessageBoxIcon.Error
-                                    , MessageBoxDefaultButton.Button1
-                                    , (MessageBoxOptions)0x40000);
-                    goto EndOfGameSelection;
-                }
-                GameNameLabel.Text = InternalGameName;
-                var GameTitle = StringUtil.RemoveSpecialChars(GameTdb.GetName(CucholixRepoID));
-                PackedTitleLine1.Text = !string.IsNullOrEmpty(GameTitle) ? GameTitle : InternalGameName;
-                //Convert pulled Title ID Int to Hex for use with Wii U Title ID
+                reader.BaseStream.Position = 0;
+                TitleIDInt = reader.ReadInt32();
                 idBytes = BitConverter.GetBytes(TitleIDInt);
                 if (!BitConverter.IsLittleEndian)
                 {
                     Array.Reverse(idBytes);
                 }
-                TitleIDHex = BitConverter.ToString(idBytes).Replace("-", "");
-                if (SystemType == "dol")
+                string idString = Encoding.ASCII.GetString(idBytes);
+
+                // WBFS Check
+                if (idString == "WBFS") // Performs actions if the header indicates a WBFS file
                 {
-                    TitleIDLabel.Text = TitleIDHex;
-                    PackedTitleIDLine.Text = ("00050002" + TitleIDHex);
-                    TitleIDText = "BOOT";
+                    FlagWBFS = true;
+                    reader.BaseStream.Position = 0x200;
+                    TitleIDInt = reader.ReadInt32();
+                    reader.BaseStream.Position = 0x218;
+                    GameType = reader.ReadInt64();
+                    
+                    reader.BaseStream.Position = 0x220;
+                    InternalGameName = ReadNullTerminatedString(reader);
+                    
+                    reader.BaseStream.Position = 0x200;
+                    CucholixRepoID = ReadNullTerminatedString(reader);
                 }
                 else
                 {
-                    TitleIDText = string.Join("", System.Text.RegularExpressions.Regex.Split(TitleIDHex, "(?<=\\G..)(?!$)").Select(x => (char)Convert.ToByte(x, 16)));
-                    TitleIDLabel.Text = (TitleIDText + " / " + TitleIDHex);
-                    PackedTitleIDLine.Text = ("00050002" + TitleIDHex);
+                    if (TitleIDInt == 65536) // Performs actions if the header indicates a DOL file
+                    {
+                        reader.BaseStream.Position = 0x2A0;
+                        TitleIDInt = reader.ReadInt32();
+                        InternalGameName = "N/A";
+                    }
+                    else // Performs actions if the header indicates a normal Wii / GC iso
+                    {
+                        FlagWBFS = false;
+                        FlagNKIT = false;
+                        FlagNASOS = false;
+                        uint startOffset = 0;
+                        
+                        // NASOS check
+                        if (idString == "WII5")
+                        {
+                            FlagNASOS = true;
+                            startOffset = 0x1182800;
+                        }
+                        else if (idString == "WII9")
+                        {
+                            FlagNASOS = true;
+                            startOffset = 0x1FB5000;
+                        }
+
+                        // read game info
+                        reader.BaseStream.Position = startOffset;
+                        TitleIDInt = reader.ReadInt32();
+                        reader.BaseStream.Position = startOffset + 0x18;
+                        GameType = reader.ReadInt64();
+                        
+                        reader.BaseStream.Position = startOffset + 0x20;
+                        InternalGameName = ReadNullTerminatedString(reader);
+                        
+                        reader.BaseStream.Position = startOffset + 0x00;
+                        CucholixRepoID = ReadNullTerminatedString(reader);
+
+                        // NKIT check
+                        if (!FlagNASOS)
+                        {
+                            reader.BaseStream.Position = 0x200;
+                            idBytes = reader.ReadBytes(4);
+                            idString = Encoding.ASCII.GetString(idBytes);
+                            if (idString == "NKIT")
+                            {
+                                FlagNKIT = true;
+                            }
+                        }
+                    }
                 }
             }
-            else
+
+            // Flag if GameType Int doesn't match current SystemType
+            if ((SystemType == "wii" && GameType != WiiGameType) || (SystemType == "gcn" && GameType != GCGameType))
             {
+                string errorMsg = SystemType == "wii" ? "This is not a Wii image. It will not be loaded." : "This is not a GameCube image. It will not be loaded.";
+                
                 GameSourceDirectory.Text = "Game file has not been specified";
                 GameSourceDirectory.ForeColor = Color.Red;
                 FlagGameSpecified = false;
@@ -828,9 +720,46 @@ namespace TeconMoon_s_WiiVC_Injector
                 CucholixRepoID = "";
                 PackedTitleLine1.Text = "";
                 PackedTitleIDLine.Text = "";
-                goto EndOfGameSelection;
+                
+                MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+                return;
             }
-            EndOfGameSelection:;
+
+            GameNameLabel.Text = InternalGameName;
+            var GameTitle = StringUtil.RemoveSpecialChars(GameTdb.GetName(CucholixRepoID));
+            PackedTitleLine1.Text = !string.IsNullOrEmpty(GameTitle) ? GameTitle : InternalGameName;
+            
+            // Convert pulled Title ID Int to Hex for use with Wii U Title ID
+            idBytes = BitConverter.GetBytes(TitleIDInt);
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(idBytes);
+            }
+            TitleIDHex = BitConverter.ToString(idBytes).Replace("-", "");
+            
+            if (SystemType == "dol")
+            {
+                TitleIDLabel.Text = TitleIDHex;
+                PackedTitleIDLine.Text = $"00050002{TitleIDHex}";
+                TitleIDText = "BOOT";
+            }
+            else
+            {
+                TitleIDText = string.Join("", System.Text.RegularExpressions.Regex.Split(TitleIDHex, "(?<=\\G..)(?!$)").Select(x => (char)Convert.ToByte(x, 16)));
+                TitleIDLabel.Text = $"{TitleIDText} / {TitleIDHex}";
+                PackedTitleIDLine.Text = $"00050002{TitleIDHex}";
+            }
+        }
+
+        private string ReadNullTerminatedString(BinaryReader reader)
+        {
+            StringBuilder sb = new StringBuilder();
+            char c;
+            while (reader.BaseStream.Position < reader.BaseStream.Length && (c = reader.ReadChar()) != 0)
+            {
+                sb.Append(c);
+            }
+            return sb.ToString();
         }
 
         private void IconSourceButton_Click(object sender, EventArgs e)
@@ -844,33 +773,41 @@ namespace TeconMoon_s_WiiVC_Injector
                 FlagRepo = false;
                 pngtemppath = "";
             }
-            MessageBox.Show("Make sure your icon is 128x128 (1:1) to prevent distortion"
-                            , "Icon Size Information"
-                            , MessageBoxButtons.OK
-                            , MessageBoxIcon.Information
-                            , MessageBoxDefaultButton.Button1
-                            , (MessageBoxOptions)0x40000);
+
+            MessageBox.Show("Make sure your icon is 128x128 (1:1) to prevent distortion",
+                "Icon Size Information",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                (MessageBoxOptions)0x40000);
+
             if (OpenIcon.ShowDialog() == DialogResult.OK)
             {
-               if (Path.GetExtension(OpenIcon.FileName) == ".tga")
-               {
-                    pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png";
-                    if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                    LauncherExeFile = TempToolsPath + "IMG\\tga2pngcmd.exe";
-                    LauncherExeArgs = "-i \"" + OpenIcon.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"";
+                pngtemppath = TempIconPath;
+                if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
+
+                if (Path.GetExtension(OpenIcon.FileName).Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    LauncherExeFile = Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe");
+                    LauncherExeArgs = $"-i \"{OpenIcon.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"";
                     LaunchProgram();
-                    File.Move(Path.GetDirectoryName(pngtemppath) + "\\" + Path.GetFileNameWithoutExtension(OpenIcon.FileName) + ".png", pngtemppath);
-               }
-               else
-               {
-                   pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\iconTex.png";
-                   if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                   Image.FromFile(OpenIcon.FileName).Save(pngtemppath, System.Drawing.Imaging.ImageFormat.Png);
-               } 
-                FileStream tempstream = new FileStream(pngtemppath, FileMode.Open);
-                var tempimage = Image.FromStream(tempstream);
-                IconPreviewBox.Image = tempimage;
-                tempstream.Close();
+                    
+                    string convertedPng = Path.Combine(Path.GetDirectoryName(pngtemppath), Path.GetFileNameWithoutExtension(OpenIcon.FileName) + ".png");
+                    File.Move(convertedPng, pngtemppath);
+                }
+                else
+                {
+                    using (var img = Image.FromFile(OpenIcon.FileName))
+                    {
+                        img.Save(pngtemppath, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                }
+
+                using (var tempstream = new FileStream(pngtemppath, FileMode.Open, FileAccess.Read))
+                {
+                    IconPreviewBox.Image = Image.FromStream(tempstream);
+                }
+
                 IconSourceDirectory.Text = OpenIcon.FileName;
                 IconSourceDirectory.ForeColor = Color.Black;
                 FlagIconSpecified = true;
@@ -891,39 +828,45 @@ namespace TeconMoon_s_WiiVC_Injector
             if (FlagRepo)
             {
                 BannerPreviewBox.Image = null;
-                BannerPreviewBox.Image = null;
-                FlagBannerSpecified = false;
                 FlagBannerSpecified = false;
                 FlagRepo = false;
                 pngtemppath = "";
             }
-            MessageBox.Show("Make sure your Banner is 1280x720 (16:9) to prevent distortion"
-                            , "Banner Size Information"
-                            , MessageBoxButtons.OK
-                            , MessageBoxIcon.Information
-                            , MessageBoxDefaultButton.Button1
-                            , (MessageBoxOptions)0x40000);
+
+            MessageBox.Show("Make sure your Banner is 1280x720 (16:9) to prevent distortion",
+                "Banner Size Information",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1,
+                (MessageBoxOptions)0x40000);
+
             if (OpenBanner.ShowDialog() == DialogResult.OK)
             {
-                if (Path.GetExtension(OpenBanner.FileName) == ".tga")
+                pngtemppath = TempBannerPath;
+                if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
+
+                if (Path.GetExtension(OpenBanner.FileName).Equals(".tga", StringComparison.OrdinalIgnoreCase))
                 {
-                    pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png";
-                    if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                    LauncherExeFile = TempToolsPath + "IMG\\tga2pngcmd.exe";
-                    LauncherExeArgs = "-i \"" + OpenBanner.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"";
+                    LauncherExeFile = Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe");
+                    LauncherExeArgs = $"-i \"{OpenBanner.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"";
                     LaunchProgram();
-                    File.Move(Path.GetDirectoryName(pngtemppath) + "\\" + Path.GetFileNameWithoutExtension(OpenBanner.FileName) + ".png", pngtemppath);
+                    
+                    string convertedPng = Path.Combine(Path.GetDirectoryName(pngtemppath), Path.GetFileNameWithoutExtension(OpenBanner.FileName) + ".png");
+                    File.Move(convertedPng, pngtemppath);
                 }
                 else
                 {
-                    pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootTvTex.png";
-                    if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                    Image.FromFile(OpenBanner.FileName).Save(pngtemppath, System.Drawing.Imaging.ImageFormat.Png);
+                    using (var img = Image.FromFile(OpenBanner.FileName))
+                    {
+                        img.Save(pngtemppath, System.Drawing.Imaging.ImageFormat.Png);
+                    }
                 }
-                FileStream tempstream = new FileStream(pngtemppath, FileMode.Open);
-                var tempimage = Image.FromStream(tempstream);
-                BannerPreviewBox.Image = tempimage;
-                tempstream.Close();
+
+                using (var tempstream = new FileStream(pngtemppath, FileMode.Open, FileAccess.Read))
+                {
+                    BannerPreviewBox.Image = Image.FromStream(tempstream);
+                }
+
                 BannerSourceDirectory.Text = OpenBanner.FileName;
                 BannerSourceDirectory.ForeColor = Color.Black;
                 FlagBannerSpecified = true;
@@ -1580,7 +1523,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         BuildStatus.Text = "";
                         BuildStatus.Refresh();
                         BuildProgress.Value = 0;
-                        goto BuildProcessFin;
+                        return;
                     }
                 }
             }
@@ -1605,7 +1548,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         BuildStatus.Text = "";
                         BuildStatus.Refresh();
                         BuildProgress.Value = 0;
-                        goto BuildProcessFin;
+                        return;
                     }
                 }
             }
@@ -1630,7 +1573,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         BuildStatus.Text = "";
                         BuildStatus.Refresh();
                         BuildProgress.Value = 0;
-                        goto BuildProcessFin;
+                        return;
                     }
                 }
             }
@@ -1650,13 +1593,12 @@ namespace TeconMoon_s_WiiVC_Injector
                                                                 , MessageBoxDefaultButton.Button1
                                                                 , (MessageBoxOptions)0x40000);
                     if (dialogResult == DialogResult.No)
-                        if (dialogResult == DialogResult.No)
                     {
                         MainTabs.Enabled = true;
-                        BuildStatus.Text = "";
+                        BuildStatus.Text = string.Empty;
                         BuildStatus.Refresh();
                         BuildProgress.Value = 0;
-                        goto BuildProcessFin;
+                        return;
                     }
                 }
             }
@@ -1667,52 +1609,51 @@ namespace TeconMoon_s_WiiVC_Injector
             }
             else
             {
-                var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder")
+                using (var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder"))
                 {
-                    InitialDirectory = Properties.Settings.Default.OutputPath,
-                    IsFolderPicker = true,
-                    EnsurePathExists = true
-                };
+                    outputFolderSelect.InitialDirectory = Properties.Settings.Default.OutputPath;
+                    outputFolderSelect.IsFolderPicker = true;
+                    outputFolderSelect.EnsurePathExists = true;
 
-                //Specify Path Variables to be called later
-                if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Cancel)
-                {
-                    MessageBox.Show("Output folder selection has been cancelled, conversion will not continue."
-                                    , "Cancelled"
-                                    , MessageBoxButtons.OK
-                                    , MessageBoxIcon.Warning
-                                    , MessageBoxDefaultButton.Button1
-                                    , (MessageBoxOptions)0x40000);
-                    MainTabs.Enabled = true;
-                    goto BuildProcessFin;
+                    if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Cancel)
+                    {
+                        MessageBox.Show("Output folder selection has been cancelled, conversion will not continue.",
+                            "Cancelled",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning,
+                            MessageBoxDefaultButton.Button1,
+                            (MessageBoxOptions)0x40000);
+                        MainTabs.Enabled = true;
+                        return;
+                    }
+                    selectedOutputPath = outputFolderSelect.FileName;
+                    Properties.Settings.Default.OutputPath = selectedOutputPath;
+                    Properties.Settings.Default.Save();
                 }
-                selectedOutputPath = outputFolderSelect.FileName;
-                Properties.Settings.Default.OutputPath = selectedOutputPath;
-                Properties.Settings.Default.Save();
             }
             BuildProgress.Value = 2;
             //////////////////////////
 
             //Download base files with JNUSTool, store them for future use
 
-            var downloadedFiles = new string[]
+            var downloadedFiles = new[]
             {
-                JNUSToolDownloads + "0005001010004000\\code\\deint.txt",
-                JNUSToolDownloads + "0005001010004000\\code\\font.bin",
-                JNUSToolDownloads + "0005001010004001\\code\\c2w.img",
-                JNUSToolDownloads + "0005001010004001\\code\\boot.bin",
-                JNUSToolDownloads + "0005001010004001\\code\\dmcu.d.hex",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\cos.xml",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\frisbiiU.rpx",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\fw.img",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\fw.tmd",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\htk.bin",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\code\\nn_hai_user.rpl",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\content\\assets\\shaders\\cafe\\banner.gsh",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\content\\assets\\shaders\\cafe\\fade.gsh",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\meta\\bootMovie.h264",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\meta\\bootLogoTex.tga",
-                JNUSToolDownloads + "Rhythm Heaven Fever [VAKE01]\\meta\\bootSound.btsnd"
+                Path.Combine(JNUSToolDownloads, "0005001010004000", "code", "deint.txt"),
+                Path.Combine(JNUSToolDownloads, "0005001010004000", "code", "font.bin"),
+                Path.Combine(JNUSToolDownloads, "0005001010004001", "code", "c2w.img"),
+                Path.Combine(JNUSToolDownloads, "0005001010004001", "code", "boot.bin"),
+                Path.Combine(JNUSToolDownloads, "0005001010004001", "code", "dmcu.d.hex"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "cos.xml"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "frisbiiU.rpx"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "fw.img"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "fw.tmd"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "htk.bin"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "code", "nn_hai_user.rpl"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "content", "assets", "shaders", "cafe", "banner.gsh"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "content", "assets", "shaders", "cafe", "fade.gsh"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "meta", "bootMovie.h264"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "meta", "bootLogoTex.tga"),
+                Path.Combine(JNUSToolDownloads, "Rhythm Heaven Fever [VAKE01]", "meta", "bootSound.btsnd")
             };
 
             var fileHashes = new string[]
@@ -1760,9 +1701,10 @@ namespace TeconMoon_s_WiiVC_Injector
             BuildProgress.Value = 10;
 
             // create config file for jnustool
-            string[] JNUSToolConfig = { "http://ccs.cdn.wup.shop.nintendo.net/ccs/download", WiiUCommonKey.Text };
-            File.WriteAllLines(TempToolsPath + "JAR\\config", JNUSToolConfig);
-            Directory.SetCurrentDirectory(TempToolsPath + "JAR");
+            string[] jnusToolConfig = { "http://ccs.cdn.wup.shop.nintendo.net/ccs/download", WiiUCommonKey.Text };
+            string jnusConfigPath = Path.Combine(TempToolsPath, "JAR", "config");
+            File.WriteAllLines(jnusConfigPath, jnusToolConfig);
+            Directory.SetCurrentDirectory(Path.Combine(TempToolsPath, "JAR"));
             LauncherExeFile = "JNUSTool.exe";
 
             bool internetPresent = CheckForInternetConnection();
@@ -1777,20 +1719,19 @@ namespace TeconMoon_s_WiiVC_Injector
 
                 if (!internetPresent)
                 {
-                    DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download" +
-                                                                "the necessary base files from Nintendo anyway? (This is a one-time download)"
-                                                                , "Internet Connection Verification Failed"
-                                                                , MessageBoxButtons.YesNo
-                                                                , MessageBoxIcon.Warning
-                                                                , MessageBoxDefaultButton.Button1
-                                                                , (MessageBoxOptions)0x40000);
+                    DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download the necessary base files from Nintendo anyway? (This is a one-time download)",
+                        "Internet Connection Verification Failed",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button1,
+                        (MessageBoxOptions)0x40000);
                     if (dialogResult == DialogResult.No)
                     {
                         MainTabs.Enabled = true;
                         BuildStatus.Text = "";
                         BuildStatus.Refresh();
                         BuildProgress.Value = 0;
-                        goto BuildProcessFin;
+                        return;
                     }
                 }
 
@@ -1839,16 +1780,16 @@ namespace TeconMoon_s_WiiVC_Injector
 
                 if (JNUSFail)
                 {
-                    MessageBox.Show("Failed to download base files using JNUSTool, conversion will not continue"
-                                    , "Error"
-                                    , MessageBoxButtons.OK
-                                    , MessageBoxIcon.Error
-                                    , MessageBoxDefaultButton.Button1
-                                    , (MessageBoxOptions)0x40000);
+                    MessageBox.Show("Failed to download base files using JNUSTool, conversion will not continue",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error,
+                        MessageBoxDefaultButton.Button1,
+                        (MessageBoxOptions)0x40000);
                     MainTabs.Enabled = true;
                     BuildStatus.Text = "";
                     BuildProgress.Value = 0;
-                    goto BuildProcessFin;
+                    return;
                 }
             }
             File.Delete("config");
@@ -2227,8 +2168,6 @@ namespace TeconMoon_s_WiiVC_Injector
             BuildStatus.Refresh();
             MainTabs.Enabled = true;
             MainTabs.SelectedTab = SourceFilesTab;
-            BuildProcessFin:;
-            /////
         }
 
         private string SanitizeFilename(string str)
@@ -2239,11 +2178,11 @@ namespace TeconMoon_s_WiiVC_Injector
 
         private static string GetMD5Checksum(string file)
         {
-            using (FileStream stream = File.OpenRead(file))
+            using (var stream = File.OpenRead(file))
+            using (var md5 = MD5.Create())
             {
-                var md5 = MD5.Create();
                 byte[] checksum = md5.ComputeHash(stream);
-                return BitConverter.ToString(checksum).Replace("-", String.Empty);
+                return BitConverter.ToString(checksum).Replace("-", string.Empty);
             }
         }
 

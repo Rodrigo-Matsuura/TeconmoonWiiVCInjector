@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using TeconMoon_s_WiiVC_Injector.Properties;
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -16,13 +11,16 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             if (string.IsNullOrEmpty(v))
                 return v;
+
             string s = RemoveDiacritics(v);
-            string stripped = new string(s.Where(c => c < 128).ToArray());
-            return stripped;
+            return new string(s.Where(c => c < 128).ToArray());
         }
 
         public static string RemoveDiacritics(string text)
         {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
             var normalizedString = text.Normalize(NormalizationForm.FormD);
             var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
 
@@ -39,18 +37,17 @@ namespace TeconMoon_s_WiiVC_Injector
             return stringBuilder
                 .ToString()
                 .Normalize(NormalizationForm.FormC);
-
         }
 
         public static string ReplaceAt(this string input, int index, char newChar)
         {
             if (input == null)
-            {
-                throw new ArgumentNullException("input");
-            }
+                throw new ArgumentNullException(nameof(input));
+
             char[] chars = input.ToCharArray();
             chars[index] = newChar;
             return new string(chars);
         }
     }
 }
+

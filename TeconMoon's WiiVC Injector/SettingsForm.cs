@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using System.Windows.Forms;
-using System.IO;
-using System.IO.Compression;
-using System.Net;
-using System.Diagnostics;
 using TeconMoon_s_WiiVC_Injector.Properties;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -39,17 +28,17 @@ namespace TeconMoon_s_WiiVC_Injector
 
         private void OutputDirButton_Click(object sender, EventArgs e)
         {
-            var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder")
+            using (var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder")
             {
                 InitialDirectory = Settings.Default.OutputPath,
                 IsFolderPicker = true,
                 EnsurePathExists = true
-            };
-
-            //Specify Path Variables to be called later
-            if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Ok)
+            })
             {
-                OutputDir.Text = outputFolderSelect.FileName;
+                if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    OutputDir.Text = outputFolderSelect.FileName;
+                }
             }
         }
     }
