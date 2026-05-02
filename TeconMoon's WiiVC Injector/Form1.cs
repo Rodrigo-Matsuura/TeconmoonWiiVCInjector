@@ -135,7 +135,21 @@ namespace TeconMoon_s_WiiVC_Injector
                     finalExe = "java";
                     finalArgs = $"-jar \"{jnusJar}\" {args}";
                 }
-                else if (exeName == "nuspacker.exe" || exeName == "wav2btsnd.exe" || exeName == "converttoiso.exe" || exeName == "nfs2iso2nfs.exe")
+                else if (exeName == "nuspacker.exe")
+                {
+                    string nusJar = Path.Combine(Path.GetDirectoryName(exe), "NUSPacker.jar");
+                    if (!File.Exists(nusJar))
+                    {
+                        string jarUrl = "https://raw.githubusercontent.com/ihaveamac/nuspacker/master/NUSPacker.jar";
+                        using (var client = new System.Net.WebClient())
+                        {
+                            client.DownloadFile(jarUrl, nusJar);
+                        }
+                    }
+                    finalExe = "java";
+                    finalArgs = $"-jar \"{nusJar}\" {args}";
+                }
+                else if (exeName == "wav2btsnd.exe" || exeName == "converttoiso.exe" || exeName == "nfs2iso2nfs.exe")
                 {
                     finalExe = "mono";
                     finalArgs = $"\"{exe}\" {args}";
@@ -309,12 +323,9 @@ namespace TeconMoon_s_WiiVC_Injector
             if (e.CloseReason == CloseReason.WindowsShutDown) { Directory.Delete(TempRootPath, true); return; }
 
             // Confirm user wants to close
-            switch (MessageBox.Show(this, "Are you sure you want to close?"
+            switch (CustomMessageBox.ShowYesNo(this, "Are you sure you want to close?"
                     , "Closing"
-                    , MessageBoxButtons.YesNo
-                    , MessageBoxIcon.Question
-                    , MessageBoxDefaultButton.Button1
-                    , (MessageBoxOptions)0x40000))
+                    , MessageBoxIcon.Question))
             {
                 case DialogResult.No:
                     e.Cancel = true;
@@ -878,12 +889,9 @@ namespace TeconMoon_s_WiiVC_Injector
                 if (!TryDownloadImages(CucholixRepoID))
                 {
                     FlagRepo = false;
-                    if (MessageBox.Show("Cucholix's Repo does not have assets for your game. You will need to provide your own. Would you like to visit the GBAtemp request thread?"
+                    if (CustomMessageBox.ShowYesNo(this, "Cucholix's Repo does not have assets for your game. You will need to provide your own. Would you like to visit the GBAtemp request thread?"
                                         , "Game not found on Repo"
-                                        , MessageBoxButtons.YesNo
-                                        , MessageBoxIcon.Asterisk
-                                        , MessageBoxDefaultButton.Button1,
-                                        (MessageBoxOptions)0x40000) == DialogResult.Yes)
+                                        , MessageBoxIcon.Asterisk) == DialogResult.Yes)
                     {
                         Process.Start("https://gbatemp.net/threads/483080/");
                     }
@@ -1515,12 +1523,11 @@ namespace TeconMoon_s_WiiVC_Injector
                 BuildStatus.ForeColor = Color.Green;
                 BuildStatus.Refresh();
 
-                DialogResult finalDialogResult = MessageBox.Show("Conversion Complete! Your packed game can be found here:\n" + this.finalOutputPath + "\n\n" +
+                DialogResult finalDialogResult = CustomMessageBox.ShowYesNo(this, "Conversion Complete! Your packed game can be found here:\n" + this.finalOutputPath + "\n\n" +
                                                                 "Install your title using WUP Installer GX2 with signature patches enabled (CBHC, Haxchi, etc)." +
                                                                 "Make sure you have signature patches enabled when launching your title.\n\n" +
                                                                 "Open the output folder now?"
                                                                 , PackedTitleLine1.Text + " Conversion Complete"
-                                                                , MessageBoxButtons.YesNo
                                                                 , MessageBoxIcon.Information);
 
                 if (finalDialogResult == DialogResult.Yes)
@@ -1563,7 +1570,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     ? "Your hard drive may be low on space. The conversion process involves temporary files that can amount to more than double the size of your game. If you continue without clearing some hard drive space, the conversion may fail. Do you want to continue anyway?"
                     : "Your hard drive may be low on space. Even for small programs, the conversion process can use almost 5 GB of temporary storage. If you continue without clearing some hard drive space, the conversion may fail. Do you want to continue anyway?";
 
-                DialogResult dialogResult = MessageBox.Show(message, "Check your hard drive space", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                DialogResult dialogResult = CustomMessageBox.ShowYesNo(this, message, "Check your hard drive space", MessageBoxIcon.Warning);
                 return dialogResult == DialogResult.Yes;
             }
             return true;
@@ -1912,7 +1919,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     Parallel.Invoke(
                         () => {
                             string witExeLoc = Path.Combine(TempToolsPath, "WIT", "wit.exe");
-                            string witArgsLoc = "extract \"" + currentGamePath + "\" --dest \"" + Path.Combine(TempSourcePath, "EXTRACTDIR") + "\" -ovv";
+                            string witArgsLoc = "extract \"" + currentGamePath + "\" --dest \"" + Path.Combine(TempSourcePath, "ISOEXTRACT") + "\" -ovv";
                             RunProcess(witExeLoc, witArgsLoc);
                         },
                         () => {

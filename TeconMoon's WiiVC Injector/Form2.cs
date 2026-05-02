@@ -161,11 +161,9 @@ namespace TeconMoon_s_WiiVC_Injector
 
             if (!CheckForInternetConnection())
             {
-                DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download Nintendont anyway?",
+                DialogResult dialogResult = CustomMessageBox.ShowYesNo(this, "Your internet connection could not be verified, do you wish to try and download Nintendont anyway?",
                     "Internet Connection Verification Failed",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1);
+                    MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.No)
                 {
                     return;
@@ -206,11 +204,9 @@ namespace TeconMoon_s_WiiVC_Injector
             }
             else // if no removable drive is specified
             {
-                DialogResult dialogResult = MessageBox.Show("SD Card not specified.\nDo you wish to save Nintendont somewhere else?",
+                DialogResult dialogResult = CustomMessageBox.ShowYesNo(this, "SD Card not specified.\nDo you wish to save Nintendont somewhere else?",
                     "Drive not specified",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1);
+                    MessageBoxIcon.Question);
 
                 if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
@@ -516,11 +512,9 @@ namespace TeconMoon_s_WiiVC_Injector
             // if removable drive isn't specified, save file manually
             if (!DriveSpecified)
             {
-                DialogResult dialogResult = MessageBox.Show("SD card not specified.\nDo you wish to save the file somewhere else?",
+                DialogResult dialogResult = CustomMessageBox.ShowYesNo(this, "SD card not specified.\nDo you wish to save the file somewhere else?",
                     "Drive not specified",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1);
+                    MessageBoxIcon.Question);
                 if (dialogResult == DialogResult.Yes) // if YES, ask where to save the file
                 {
                     using (var saveFileDialog = new SaveFileDialog
