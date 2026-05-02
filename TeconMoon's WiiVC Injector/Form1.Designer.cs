@@ -660,6 +660,7 @@
             // ForceCC
             // 
             this.ForceCC.AutoSize = true;
+            this.ForceCC.ForeColor = System.Drawing.Color.Black;
             this.ForceCC.Location = new System.Drawing.Point(6, 58);
             this.ForceCC.Name = "ForceCC";
             this.ForceCC.Size = new System.Drawing.Size(198, 17);
@@ -671,6 +672,7 @@
             // NoGamePadEmu
             // 
             this.NoGamePadEmu.AutoSize = true;
+            this.NoGamePadEmu.ForeColor = System.Drawing.Color.Black;
             this.NoGamePadEmu.Checked = true;
             this.NoGamePadEmu.Location = new System.Drawing.Point(6, 6);
             this.NoGamePadEmu.Name = "NoGamePadEmu";
@@ -684,6 +686,7 @@
             // CCEmu
             // 
             this.CCEmu.AutoSize = true;
+            this.CCEmu.ForeColor = System.Drawing.Color.Black;
             this.CCEmu.Location = new System.Drawing.Point(245, 6);
             this.CCEmu.Name = "CCEmu";
             this.CCEmu.Size = new System.Drawing.Size(154, 17);
@@ -695,6 +698,7 @@
             // ForceNoCC
             // 
             this.ForceNoCC.AutoSize = true;
+            this.ForceNoCC.ForeColor = System.Drawing.Color.Black;
             this.ForceNoCC.Location = new System.Drawing.Point(245, 58);
             this.ForceNoCC.Name = "ForceNoCC";
             this.ForceNoCC.Size = new System.Drawing.Size(160, 17);
@@ -706,6 +710,7 @@
             // HorWiiMote
             // 
             this.HorWiiMote.AutoSize = true;
+            this.HorWiiMote.ForeColor = System.Drawing.Color.Black;
             this.HorWiiMote.Location = new System.Drawing.Point(245, 32);
             this.HorWiiMote.Name = "HorWiiMote";
             this.HorWiiMote.Size = new System.Drawing.Size(182, 17);
@@ -717,6 +722,7 @@
             // VerWiiMote
             // 
             this.VerWiiMote.AutoSize = true;
+            this.VerWiiMote.ForeColor = System.Drawing.Color.Black;
             this.VerWiiMote.Location = new System.Drawing.Point(6, 32);
             this.VerWiiMote.Name = "VerWiiMote";
             this.VerWiiMote.Size = new System.Drawing.Size(171, 17);
@@ -1238,6 +1244,7 @@
             // GCRetail
             // 
             this.GCRetail.AutoSize = true;
+            this.GCRetail.ForeColor = System.Drawing.Color.Black;
             this.GCRetail.Location = new System.Drawing.Point(325, 3);
             this.GCRetail.Name = "GCRetail";
             this.GCRetail.Size = new System.Drawing.Size(113, 17);
@@ -1249,6 +1256,7 @@
             // WiiNAND
             // 
             this.WiiNAND.AutoSize = true;
+            this.WiiNAND.ForeColor = System.Drawing.Color.Black;
             this.WiiNAND.Location = new System.Drawing.Point(3, 28);
             this.WiiNAND.Name = "WiiNAND";
             this.WiiNAND.Size = new System.Drawing.Size(151, 17);
@@ -1260,6 +1268,7 @@
             // WiiHomebrew
             // 
             this.WiiHomebrew.AutoSize = true;
+            this.WiiHomebrew.ForeColor = System.Drawing.Color.Black;
             this.WiiHomebrew.Location = new System.Drawing.Point(164, 3);
             this.WiiHomebrew.Name = "WiiHomebrew";
             this.WiiHomebrew.Size = new System.Drawing.Size(137, 17);
