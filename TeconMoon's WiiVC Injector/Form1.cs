@@ -121,21 +121,7 @@ namespace TeconMoon_s_WiiVC_Injector
             }
             Process.Start(Launcher).WaitForExit();
         }
-        public static bool CheckForInternetConnection()
-        {
-            try
-            {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
+
         public void CleanUp()
         {
             var sourceFilesToDelete = Directory.EnumerateFiles(TempSourcePath, "*.*", System.IO.SearchOption.AllDirectories);
@@ -1707,7 +1693,7 @@ namespace TeconMoon_s_WiiVC_Injector
             Directory.SetCurrentDirectory(Path.Combine(TempToolsPath, "JAR"));
             LauncherExeFile = "JNUSTool.exe";
 
-            bool internetPresent = CheckForInternetConnection();
+            bool internetPresent = Program.CheckForInternetConnection();
 
             for (int i = 0; i < downloadedFiles.Length; i++)
             {

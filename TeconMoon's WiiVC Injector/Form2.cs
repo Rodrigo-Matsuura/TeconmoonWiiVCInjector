@@ -84,21 +84,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 WidthNumber.Text = VideoWidth.Value.ToString();
             }
         }
-        public static bool CheckForInternetConnection()
-        {
-            try
-            {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
+
 
         //Reload Drives when selected
         private void ReloadDrives_Click(object sender, EventArgs e)
@@ -159,7 +145,7 @@ namespace TeconMoon_s_WiiVC_Injector
             string tempPath = Path.Combine(downloadPath, "apps", "nintendont");
             string sdPath = Path.Combine(SelectedDriveLetter, "apps", "nintendont");
 
-            if (!CheckForInternetConnection())
+            if (!Program.CheckForInternetConnection())
             {
                 DialogResult dialogResult = MessageBox.Show("Your internet connection could not be verified, do you wish to try and download Nintendont anyway?",
                     "Internet Connection Verification Failed",
