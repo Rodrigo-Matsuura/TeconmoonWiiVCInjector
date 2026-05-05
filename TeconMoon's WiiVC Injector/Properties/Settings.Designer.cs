@@ -61,6 +61,42 @@ namespace TeconMoon_s_WiiVC_Injector.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string WiiUCommonKey {
+            get {
+                return ((string)(this["WiiUCommonKey"]));
+            }
+            set {
+                this["WiiUCommonKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TitleKey {
+            get {
+                return ((string)(this["TitleKey"]));
+            }
+            set {
+                this["TitleKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AncastKey {
+            get {
+                return ((string)(this["AncastKey"]));
+            }
+            set {
+                this["AncastKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("https://raw.githubusercontent.com/UWUVCI-PRIME/UWUVCI-IMAGES/master/")]
         public string BannersRepository {
             get {

@@ -11,6 +11,15 @@
     <Setting Name="OutputPathFixed" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="WiiUCommonKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="TitleKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AncastKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
     <Setting Name="BannersRepository" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://raw.githubusercontent.com/UWUVCI-PRIME/UWUVCI-IMAGES/master/</Value>
     </Setting>

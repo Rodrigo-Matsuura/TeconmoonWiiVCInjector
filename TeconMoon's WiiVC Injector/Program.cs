@@ -1,5 +1,5 @@
 using System;
-using System.Net;
+using System.Net.Http;
 using System.Windows.Forms;
 
 namespace TeconMoon_s_WiiVC_Injector
@@ -21,10 +21,10 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             try
             {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
+                using (var client = new HttpClient())
                 {
-                    return true;
+                    var response = client.GetAsync("http://clients3.google.com/generate_204").Result;
+                    return response.IsSuccessStatusCode;
                 }
             }
             catch
