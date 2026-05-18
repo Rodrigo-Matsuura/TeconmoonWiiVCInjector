@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Media;
 using Microsoft.Win32;
 using System.Security.Cryptography;
 using System.Net;
 using System.IO.Compression;
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TeconMoon_s_WiiVC_Injector
@@ -254,7 +256,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 GC2SourceDirectory.Text = "2nd GameCube Disc Image has not been specified";
                 GC2SourceDirectory.ForeColor = Color.Red;
                 FlagGC2Specified = false;
-                if (NoGamePadEmu.Checked == false & CCEmu.Checked == false & HorWiiMote.Checked == false & VerWiiMote.Checked == false & ForceCC.Checked == false & ForceNoCC.Checked == false)
+                if (!NoGamePadEmu.Checked && !CCEmu.Checked && !HorWiiMote.Checked && !VerWiiMote.Checked && !ForceCC.Checked && !ForceNoCC.Checked)
                 {
                     NoGamePadEmu.Checked = true;
                     GamePadEmuLayout.Enabled = true;
@@ -506,55 +508,19 @@ namespace TeconMoon_s_WiiVC_Injector
             // Check for building requirements when switching to the Build tab
             if (MainTabs.SelectedTab == BuildTab)
             {
-                using (var key = Registry.CurrentUser.CreateSubKey("WiiVCInjector"))
-                {
-                    if (key.GetValue("WiiUCommonKey") == null)
-                    {
-                        key.SetValue("WiiUCommonKey", "00000000000000000000000000000000");
-                    }
-                    WiiUCommonKey.Text = key.GetValue("WiiUCommonKey").ToString().ToUpper();
+                WiiUCommonKey.Text = string.IsNullOrEmpty(Properties.Settings.Default.WiiUCommonKey)
+                    ? "00000000000000000000000000000000"
+                    : Properties.Settings.Default.WiiUCommonKey.ToUpper();
+                TitleKey.Text = string.IsNullOrEmpty(Properties.Settings.Default.TitleKey)
+                    ? "00000000000000000000000000000000"
+                    : Properties.Settings.Default.TitleKey.ToUpper();
+                AncastKey.Text = string.IsNullOrEmpty(Properties.Settings.Default.AncastKey)
+                    ? "00000000000000000000000000000000"
+                    : Properties.Settings.Default.AncastKey.ToUpper();
 
-                    if (key.GetValue("TitleKey") == null)
-                    {
-                        key.SetValue("TitleKey", "00000000000000000000000000000000");
-                    }
-                    TitleKey.Text = key.GetValue("TitleKey").ToString().ToUpper();
-                }
-
-                using (var md5 = MD5.Create())
-                {
-                    // Generate MD5 hashes for loaded keys and check them
-                    WiiUCommonKeyHash = GetMd5Hash(md5, WiiUCommonKey.Text);
-                    if (WiiUCommonKeyHash == "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC")
-                    {
-                        CommonKeyGood = true;
-                        WiiUCommonKey.ReadOnly = true;
-                        WiiUCommonKey.BackColor = Color.Lime;
-                    }
-                    else
-                    {
-                        CommonKeyGood = false;
-                        WiiUCommonKey.ReadOnly = false;
-                        WiiUCommonKey.BackColor = Color.White;
-                    }
-
-                    TitleKeyHash = GetMd5Hash(md5, TitleKey.Text);
-                    if (TitleKeyHash == "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F")
-                    {
-                        TitleKeyGood = true;
-                        TitleKey.ReadOnly = true;
-                        TitleKey.BackColor = Color.Lime;
-                    }
-                    else
-                    {
-                        TitleKeyGood = false;
-                        TitleKey.ReadOnly = false;
-                        TitleKey.BackColor = Color.White;
-                    }
-
-                    AncastKeyHash = GetMd5Hash(md5, AncastKey.Text.ToUpper());
-                    AncastKeyGood = AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43";
-                }
+                CommonKeyGood = SetKeyStatus(WiiUCommonKey, "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC");
+                TitleKeyGood = SetKeyStatus(TitleKey, "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F");
+                AncastKeyGood = SetKeyStatus(AncastKey, "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43");
 
                 // Final check for if all requirements are good
                 BuildFlagSource = FlagGameSpecified && FlagIconSpecified && FlagBannerSpecified;
@@ -594,6 +560,18 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             byte[] data = md5Hash.ComputeHash(Encoding.ASCII.GetBytes(input));
             return BitConverter.ToString(data);
+        }
+
+        private bool SetKeyStatus(TextBox keyTextBox, string expectedHash)
+        {
+            keyTextBox.Text = keyTextBox.Text.ToUpper();
+            using (var md5 = MD5.Create())
+            {
+                bool isValid = string.Equals(GetMd5Hash(md5, keyTextBox.Text), expectedHash, StringComparison.OrdinalIgnoreCase);
+                keyTextBox.ReadOnly = isValid;
+                keyTextBox.BackColor = isValid ? Color.Lime : Color.White;
+                return isValid;
+            }
         }
 
         //Events for the "Required Source Files" Tab
@@ -1049,7 +1027,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     long WAVHeader1 = reader.ReadInt32();
                     reader.BaseStream.Position = 0x08;
                     long WAVHeader2 = reader.ReadInt32();
-                    if (WAVHeader1 == 1179011410 & WAVHeader2 == 1163280727)
+                    if (WAVHeader1 == 1179011410 && WAVHeader2 == 1163280727)
                     {
                         BootSoundDirectory.Text = OpenBootSound.FileName;
                         BootSoundDirectory.ForeColor = Color.Black;
@@ -1326,28 +1304,14 @@ namespace TeconMoon_s_WiiVC_Injector
                 AncastKey.ReadOnly = false;
                 AncastKey.BackColor = Color.White;
                 SaveAncastKeyButton.Enabled = true;
-                if (Registry.CurrentUser.CreateSubKey("WiiVCInjector").GetValue("AncastKey") == null)
+
+                if (string.IsNullOrEmpty(Properties.Settings.Default.AncastKey))
                 {
-                    Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("AncastKey", "00000000000000000000000000000000");
+                    Properties.Settings.Default.AncastKey = "00000000000000000000000000000000";
+                    Properties.Settings.Default.Save();
                 }
-                AncastKey.Text = Registry.CurrentUser.OpenSubKey("WiiVCInjector").GetValue("AncastKey").ToString();
-                Registry.CurrentUser.OpenSubKey("WiiVCInjector").Close();
-                //If key is correct, lock text box for edits
-                AncastKey.Text = AncastKey.Text.ToUpper();
-                sSourceData = AncastKey.Text;
-                tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-                tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-                AncastKeyHash = BitConverter.ToString(tmpHash);
-                if (AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43")
-                {
-                    AncastKey.ReadOnly = true;
-                    AncastKey.BackColor = Color.Lime;
-                }
-                else
-                {
-                    AncastKey.ReadOnly = false;
-                    AncastKey.BackColor = Color.White;
-                }
+                AncastKey.Text = Properties.Settings.Default.AncastKey.ToUpper();
+                SetKeyStatus(AncastKey, "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43");
             }
             else
             {
@@ -1358,29 +1322,22 @@ namespace TeconMoon_s_WiiVC_Injector
         }
         private void SaveAncastKeyButton_Click(object sender, EventArgs e)
         {
-            //Verify Title Key MD5 Hash
             AncastKey.Text = AncastKey.Text.ToUpper();
-            sSourceData = AncastKey.Text;
-            tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-            tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-            AncastKeyHash = BitConverter.ToString(tmpHash);
-            if (AncastKeyHash == "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43")
+            if (SetKeyStatus(AncastKey, "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43"))
             {
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("AncastKey", AncastKey.Text);
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").Close();
+                Properties.Settings.Default.AncastKey = AncastKey.Text;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("The Wii U Starbuck Ancast Key has been verified."
                                 , "Success"
                                 , MessageBoxButtons.OK
                                 , MessageBoxIcon.Information
                                 , MessageBoxDefaultButton.Button1
                                 , (MessageBoxOptions)0x40000);
-                AncastKey.ReadOnly = true;
-                AncastKey.BackColor = Color.Lime;
             }
             else
             {
                 MessageBox.Show("The Wii U Starbuck Ancast Key you have provided is incorrect" + "\n" + "(MD5 Hash verification failed)"
-                                , "Invalid Starbuck Ancast Keyn"
+                                , "Invalid Starbuck Ancast Key"
                                 , MessageBoxButtons.OK
                                 , MessageBoxIcon.Error
                                 , MessageBoxDefaultButton.Button1
@@ -1420,16 +1377,11 @@ namespace TeconMoon_s_WiiVC_Injector
         //Events for the "Build Title" Tab
         private void SaveCommonKeyButton_Click(object sender, EventArgs e)
         {
-            //Verify Wii U Common Key MD5 Hash
             WiiUCommonKey.Text = WiiUCommonKey.Text.ToUpper();
-            sSourceData = WiiUCommonKey.Text;
-            tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-            tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-            WiiUCommonKeyHash = BitConverter.ToString(tmpHash);
-            if (WiiUCommonKeyHash == "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC")
+            if (SetKeyStatus(WiiUCommonKey, "35-AC-59-94-97-22-79-33-1D-97-09-4F-A2-FB-97-FC"))
             {
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("WiiUCommonKey", WiiUCommonKey.Text);
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").Close();
+                Properties.Settings.Default.WiiUCommonKey = WiiUCommonKey.Text;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("The Wii U Common Key has been verified."
                                 , "Success"
                                 , MessageBoxButtons.OK
@@ -1451,16 +1403,11 @@ namespace TeconMoon_s_WiiVC_Injector
         }
         private void SaveTitleKeyButton_Click(object sender, EventArgs e)
         {
-            //Verify Title Key MD5 Hash
             TitleKey.Text = TitleKey.Text.ToUpper();
-            sSourceData = TitleKey.Text;
-            tmpSource = ASCIIEncoding.ASCII.GetBytes(sSourceData);
-            tmpHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-            TitleKeyHash = BitConverter.ToString(tmpHash);
-            if (TitleKeyHash == "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F")
+            if (SetKeyStatus(TitleKey, "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F"))
             {
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").SetValue("TitleKey", TitleKey.Text);
-                Registry.CurrentUser.CreateSubKey("WiiVCInjector").Close();
+                Properties.Settings.Default.TitleKey = TitleKey.Text;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("The Title Key has been verified."
                                 , "Success"
                                 , MessageBoxButtons.OK
