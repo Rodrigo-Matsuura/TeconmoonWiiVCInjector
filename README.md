@@ -1,10 +1,10 @@
 # 🚀 TeconMoon's WiiVC Injector - Modernized Edition (v4.0.0.0)
 
-[![Build Status](https://img.shields.io/badge/Build-Succeeded-success?style=for-the-badge&logo=.net&color=31c754)](https://github.com/piratesephiroth/TeconmoonWiiVCInjector)
-[![Version](https://img.shields.io/badge/Version-4.0.0.0-blue?style=for-the-badge&color=007acc)](file:///home/matsu/TeconmoonWiiVCInjector/TeconMoon's WiiVC Injector/Properties/AssemblyInfo.cs)
-[![Vibe Coding](https://img.shields.io/badge/Developed%20with-Vibe%20Coding-pink?style=for-the-badge&logo=ai)](https://github.com/piratesephiroth/TeconmoonWiiVCInjector)
+[![Build Status](https://img.shields.io/badge/Build-Succeeded-success?style=for-the-badge&logo=.net&color=31c754)](https://github.com/Rodrigo-Matsuura/TeconmoonWiiVCInjector)
+[![Version](https://img.shields.io/badge/Version-4.0.0.0-blue?style=for-the-badge&color=007acc)](TeconMoon's%20WiiVC%20Injector/Properties/AssemblyInfo.cs)
+[![Vibe Coding](https://img.shields.io/badge/Developed%20with-Vibe%20Coding-pink?style=for-the-badge&logo=ai)](https://github.com/Rodrigo-Matsuura/TeconmoonWiiVCInjector)
 
-This is a modernized, optimized, and polished fork of the classic **[piratesephiroth/TeconmoonWiiVCInjector](https://github.com/piratesephiroth/TeconmoonWiiVCInjector)**.
+This is a modernized, optimized, and polished fork of the classic **[piratesephiroth/TeconmoonWiiVCInjector](https://github.com/piratesephiroth/TeconmoonWiiVCInjector)**, maintained under **[Rodrigo-Matsuura/TeconmoonWiiVCInjector](https://github.com/Rodrigo-Matsuura/TeconmoonWiiVCInjector)**.
 
 The original tool for injecting Wii and GameCube games into the Wii U Virtual Console has been completely refactored to eliminate years of technical debt, introduce ultra-fast in-memory caching, modernize network connectivity, and add native support for modern compressed image formats.
 
@@ -37,6 +37,10 @@ Here is the detailed changelog and architectural refactoring breakdown of all ch
 
 ### 🐧 6. Cross-Platform Compilation out of the Box
 * **Linux/Mono Friendly**: Disabled ClickOnce manifest generation in the `.csproj` file, resolving a classic Mono/MSBuild bug that blocked direct Linux compilation. You can now build and package the `.exe` seamlessly on any operating system!
+
+### 🧹 7. Native Dialogs & Clean Dependencies
+* **No Legacy CodePack**: Removed the desupported `Microsoft.WindowsAPICodePack` dependency. The project now uses the native `FolderBrowserDialog` from .NET Framework 4.8, which automatically uses the modern Vista/Windows 10+ explorer style layout.
+* **NuGet Purge**: Cleaned up the `packages.config` and `.csproj` of dozens of redundant .NET Standard transitive packages, linking standard System APIs directly through the native .NET 4.8 GAC assemblies.
 
 ---
 
