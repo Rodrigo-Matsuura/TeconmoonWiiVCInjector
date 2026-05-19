@@ -56,7 +56,6 @@ namespace TeconMoon_s_WiiVC_Injector
         string TitleIDHex;
         string TitleIDText;
         string InternalGameName;
-        string TempString = "";
         bool FlagWBFS;
         bool FlagNKIT;
         bool FlagNASOS;
@@ -77,14 +76,7 @@ namespace TeconMoon_s_WiiVC_Injector
         bool FlagRepo;
         int TitleIDInt;
         long GameType;
-        char TempChar;
         string CucholixRepoID = "";
-        string sSourceData;
-        byte[] tmpSource;
-        byte[] tmpHash;
-        string AncastKeyHash;
-        string WiiUCommonKeyHash;
-        string TitleKeyHash;
         string DRCUSE = "1";
         string pngtemppath;
         string LoopString = " -noLoop";
