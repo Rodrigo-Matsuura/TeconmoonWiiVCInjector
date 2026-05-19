@@ -14,7 +14,6 @@ using System.IO.Compression;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.VisualBasic.FileIO;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -1514,13 +1513,13 @@ namespace TeconMoon_s_WiiVC_Injector
             }
             else
             {
-                using (var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder"))
+                using (var outputFolderSelect = new FolderBrowserDialog())
                 {
-                    outputFolderSelect.InitialDirectory = Properties.Settings.Default.OutputPath;
-                    outputFolderSelect.IsFolderPicker = true;
-                    outputFolderSelect.EnsurePathExists = true;
+                    outputFolderSelect.Description = "Specify your output folder";
+                    outputFolderSelect.SelectedPath = Properties.Settings.Default.OutputPath;
+                    outputFolderSelect.ShowNewFolderButton = true;
 
-                    if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Cancel)
+                    if (outputFolderSelect.ShowDialog() == DialogResult.Cancel)
                     {
                         MessageBox.Show("Output folder selection has been cancelled, conversion will not continue.",
                             "Cancelled",
@@ -1531,7 +1530,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         MainTabs.Enabled = true;
                         return;
                     }
-                    selectedOutputPath = outputFolderSelect.FileName;
+                    selectedOutputPath = outputFolderSelect.SelectedPath;
                     Properties.Settings.Default.OutputPath = selectedOutputPath;
                     Properties.Settings.Default.Save();
                 }

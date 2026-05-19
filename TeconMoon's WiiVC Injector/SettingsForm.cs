@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using TeconMoon_s_WiiVC_Injector.Properties;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace TeconMoon_s_WiiVC_Injector
 {
@@ -28,16 +27,15 @@ namespace TeconMoon_s_WiiVC_Injector
 
         private void OutputDirButton_Click(object sender, EventArgs e)
         {
-            using (var outputFolderSelect = new CommonOpenFileDialog("Specify your output folder")
+            using (var outputFolderSelect = new FolderBrowserDialog())
             {
-                InitialDirectory = Settings.Default.OutputPath,
-                IsFolderPicker = true,
-                EnsurePathExists = true
-            })
-            {
-                if (outputFolderSelect.ShowDialog() == CommonFileDialogResult.Ok)
+                outputFolderSelect.Description = "Specify your output folder";
+                outputFolderSelect.SelectedPath = Settings.Default.OutputPath;
+                outputFolderSelect.ShowNewFolderButton = true;
+
+                if (outputFolderSelect.ShowDialog() == DialogResult.OK)
                 {
-                    OutputDir.Text = outputFolderSelect.FileName;
+                    OutputDir.Text = outputFolderSelect.SelectedPath;
                 }
             }
         }

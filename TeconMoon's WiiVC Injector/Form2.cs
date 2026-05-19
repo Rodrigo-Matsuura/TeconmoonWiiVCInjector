@@ -10,7 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Diagnostics;
 using TeconMoon_s_WiiVC_Injector.Properties;
-using Microsoft.WindowsAPICodePack.Dialogs;
+
 
 namespace TeconMoon_s_WiiVC_Injector
 {
