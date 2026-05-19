@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http;
 using System.Diagnostics;
 using TeconMoon_s_WiiVC_Injector.Properties;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -162,11 +163,11 @@ namespace TeconMoon_s_WiiVC_Injector
             ActionStatus.Text = "Downloading...";
             ActionStatus.Refresh();
             Directory.CreateDirectory(tempPath);
-            using (var client = new WebClient())
+            // Downloader using HttpClient
             {
-                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/loader/loader.dol", Path.Combine(tempPath, "boot.dol"));
-                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/meta.xml", Path.Combine(tempPath, "meta.xml"));
-                client.DownloadFile("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/icon.png", Path.Combine(tempPath, "icon.png"));
+                File.WriteAllBytes(Path.Combine(tempPath, "boot.dol"), Program.Client.GetByteArrayAsync("https://raw.githubusercontent.com/FIX94/Nintendont/master/loader/loader.dol").Result);
+                File.WriteAllBytes(Path.Combine(tempPath, "meta.xml"), Program.Client.GetByteArrayAsync("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/meta.xml").Result);
+                File.WriteAllBytes(Path.Combine(tempPath, "icon.png"), Program.Client.GetByteArrayAsync("https://raw.githubusercontent.com/FIX94/Nintendont/master/nintendont/icon.png").Result);
             }
             ActionStatus.Text = string.Empty;
 

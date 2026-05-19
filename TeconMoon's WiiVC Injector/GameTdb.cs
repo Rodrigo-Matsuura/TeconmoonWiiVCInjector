@@ -11,47 +11,62 @@ namespace TeconMoon_s_WiiVC_Injector
         private const string ResourcePath = "TeconMoon_s_WiiVC_Injector.Resources.wiitdb.txt";
         private static readonly Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
 
-        public static string GetName(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return null;
+        // Caches estáticos em memória
+        private static readonly Dictionary<string, string> NameById = new Dictionary<string, string>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, List<string>> IdsByName = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        private static readonly List<string> SortedIds = new List<string>();
 
-            using (var stream = CurrentAssembly.GetManifestResourceStream(ResourcePath))
+        static GameTdb()
+        {
+            try
             {
-                if (stream == null) return null;
-                using (var reader = new StreamReader(stream))
+                using (var stream = CurrentAssembly.GetManifestResourceStream(ResourcePath))
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+                    if (stream == null) return;
+                    using (var reader = new StreamReader(stream))
                     {
-                        var split = line.Split(new[] { " = " }, 2, StringSplitOptions.None);
-                        if (split.Length == 2 && split[0].Equals(id, StringComparison.Ordinal))
-                            return split[1];
+                        string line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            if (line.StartsWith("TITLES =", StringComparison.Ordinal))
+                                continue;
+
+                            var split = line.Split(new[] { " = " }, 2, StringSplitOptions.None);
+                            if (split.Length < 2) continue;
+
+                            string id = split[0];
+                            string name = split[1];
+
+                            NameById[id] = name;
+
+                            if (!IdsByName.TryGetValue(name, out var list))
+                            {
+                                list = new List<string>();
+                                IdsByName[name] = list;
+                            }
+                            list.Add(id);
+
+                            SortedIds.Add(id);
+                        }
                     }
                 }
             }
-            return null;
+            catch
+            {
+                // Fallback silencioso em caso de falha de carregamento
+            }
+        }
+
+        public static string GetName(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            return NameById.TryGetValue(id, out var name) ? name : null;
         }
 
         public static List<string> GetIds(string name)
         {
-            var ids = new List<string>();
-            if (string.IsNullOrEmpty(name)) return ids;
-
-            using (var stream = CurrentAssembly.GetManifestResourceStream(ResourcePath))
-            {
-                if (stream == null) return ids;
-                using (var reader = new StreamReader(stream))
-                {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        var split = line.Split(new[] { " = " }, 2, StringSplitOptions.None);
-                        if (split.Length == 2 && split[1].Equals(name, StringComparison.Ordinal))
-                            ids.Add(split[0]);
-                    }
-                }
-            }
-            return ids;
+            if (string.IsNullOrEmpty(name)) return new List<string>();
+            return IdsByName.TryGetValue(name, out var ids) ? new List<string>(ids) : new List<string>();
         }
 
         public static List<string> GetIdsStartingWith(string idStart)
@@ -59,27 +74,15 @@ namespace TeconMoon_s_WiiVC_Injector
             var ids = new List<string>();
             if (string.IsNullOrEmpty(idStart)) return ids;
 
-            using (var stream = CurrentAssembly.GetManifestResourceStream(ResourcePath))
+            foreach (var id in SortedIds)
             {
-                if (stream == null) return ids;
-                using (var reader = new StreamReader(stream))
+                if (id.StartsWith(idStart, StringComparison.Ordinal))
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        if (line.StartsWith("TITLES =", StringComparison.Ordinal))
-                            continue;
-
-                        var split = line.Split(new[] { " = " }, 2, StringSplitOptions.None);
-                        if (split.Length < 2) continue;
-
-                        if (split[0].StartsWith(idStart, StringComparison.Ordinal))
-                            ids.Add(split[0]);
-
-                        // Gametdb titles are ordered alphabetically by id, so stop searching
-                        if (split[0].Length >= idStart.Length && string.Compare(idStart, split[0].Substring(0, idStart.Length), StringComparison.Ordinal) < 0)
-                            break;
-                    }
+                    ids.Add(id);
+                }
+                else if (id.Length >= idStart.Length && string.Compare(idStart, id.Substring(0, idStart.Length), StringComparison.Ordinal) < 0)
+                {
+                    break;
                 }
             }
             return ids;

@@ -6,6 +6,8 @@ namespace TeconMoon_s_WiiVC_Injector
 {
     static class Program
     {
+        public static readonly HttpClient Client = new HttpClient();
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -21,11 +23,8 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             try
             {
-                using (var client = new HttpClient())
-                {
-                    var response = client.GetAsync("http://clients3.google.com/generate_204").Result;
-                    return response.IsSuccessStatusCode;
-                }
+                var response = Client.GetAsync("http://clients3.google.com/generate_204").Result;
+                return response.IsSuccessStatusCode;
             }
             catch
             {

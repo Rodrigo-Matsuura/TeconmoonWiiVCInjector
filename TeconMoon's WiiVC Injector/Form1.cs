@@ -9,6 +9,7 @@ using System.Media;
 using Microsoft.Win32;
 using System.Security.Cryptography;
 using System.Net;
+using System.Net.Http;
 using System.IO.Compression;
 using System.Diagnostics;
 using System.Reflection;
@@ -137,39 +138,36 @@ namespace TeconMoon_s_WiiVC_Injector
 
         public void DownloadFromRepo(string cucholixRepoID)
         {
-            using (var client = new WebClient())
-            {
-                string baseUrl = Properties.Settings.Default.BannersRepository;
-                string iconUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/iconTex.png";
-                string bannerUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/bootTvTex.png";
+            string baseUrl = Properties.Settings.Default.BannersRepository;
+            string iconUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/iconTex.png";
+            string bannerUrl = $"{baseUrl}{SystemType}/{cucholixRepoID}/bootTvTex.png";
 
-                IconPreviewBox.Load(iconUrl);
-                if (File.Exists(TempIconPath)) { File.Delete(TempIconPath); }
-                client.DownloadFile(IconPreviewBox.ImageLocation, TempIconPath);
+            IconPreviewBox.Load(iconUrl);
+            if (File.Exists(TempIconPath)) { File.Delete(TempIconPath); }
+            var iconBytes = Program.Client.GetByteArrayAsync(iconUrl).Result;
+            File.WriteAllBytes(TempIconPath, iconBytes);
 
-                IconSourceDirectory.Text = "iconTex.png downloaded from Cucholix's Repo";
-                IconSourceDirectory.ForeColor = Color.Black;
-                FlagIconSpecified = true;
+            IconSourceDirectory.Text = "iconTex.png downloaded from Cucholix's Repo";
+            IconSourceDirectory.ForeColor = Color.Black;
+            FlagIconSpecified = true;
 
-                BannerPreviewBox.Load(bannerUrl);
-                if (File.Exists(TempBannerPath)) { File.Delete(TempBannerPath); }
-                client.DownloadFile(BannerPreviewBox.ImageLocation, TempBannerPath);
+            BannerPreviewBox.Load(bannerUrl);
+            if (File.Exists(TempBannerPath)) { File.Delete(TempBannerPath); }
+            var bannerBytes = Program.Client.GetByteArrayAsync(bannerUrl).Result;
+            File.WriteAllBytes(TempBannerPath, bannerBytes);
 
-                BannerSourceDirectory.Text = "bootTvTex.png downloaded from Cucholix's Repo";
-                BannerSourceDirectory.ForeColor = Color.Black;
-                FlagBannerSpecified = true;
-                FlagRepo = true;
-            }
+            BannerSourceDirectory.Text = "bootTvTex.png downloaded from Cucholix's Repo";
+            BannerSourceDirectory.ForeColor = Color.Black;
+            FlagBannerSpecified = true;
+            FlagRepo = true;
         }
         //Called from RepoDownload_Click to check if files exist before downloading
         private bool RemoteFileExists(string url)
         {
             try
             {
-                var request = WebRequest.Create(url) as HttpWebRequest;
-                if (request == null) return false;
-                request.Method = "HEAD";
-                using (var response = request.GetResponse() as HttpWebResponse)
+                using (var request = new HttpRequestMessage(HttpMethod.Head, url))
+                using (var response = Program.Client.SendAsync(request).Result)
                 {
                     return response != null && response.StatusCode == HttpStatusCode.OK;
                 }
@@ -1827,7 +1825,6 @@ namespace TeconMoon_s_WiiVC_Injector
                                         , MessageBoxDefaultButton.Button1
                                         , (MessageBoxOptions)0x40000);
                                         LaunchProgram(TempToolsPath + "EXE\\wii-vmc.exe", "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\"", false);
-                        HideProcess = true;
                         MessageBox.Show("Conversion will now continue..."
                                         , "Information"
                                         , MessageBoxButtons.OK
