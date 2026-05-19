@@ -23,7 +23,7 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             InitializeComponent();
             this.Text = string.Format(this.Text, Assembly.GetExecutingAssembly().GetName().Version.ToString());
-            
+
             // Check for if .Net v3.5 component is installed
             CheckForNet35();
 
@@ -44,8 +44,6 @@ namespace TeconMoon_s_WiiVC_Injector
             Directory.CreateDirectory(TempSourcePath);
             Directory.CreateDirectory(TempBuildPath);
         }
-
-
 
         //Specify public variables for later use (ASK ALAN)
         // Specify constants for magic numbers
@@ -92,19 +90,19 @@ namespace TeconMoon_s_WiiVC_Injector
         string nfspatchflag = "";
         string passpatch = " -passthrough";
         string wiimmfiOption = " --wiimmfi";
-        
+
         static readonly string JNUSToolDownloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "JNUSToolDownloads") + Path.DirectorySeparatorChar;
         static readonly string TempRootPath = Path.Combine(Path.GetTempPath(), "WiiVCInjector") + Path.DirectorySeparatorChar;
         static readonly string TempSourcePath = Path.Combine(TempRootPath, "SOURCETEMP") + Path.DirectorySeparatorChar;
         static readonly string TempBuildPath = Path.Combine(TempRootPath, "BUILDDIR") + Path.DirectorySeparatorChar;
         static readonly string TempToolsPath = Path.Combine(TempRootPath, "TOOLDIR") + Path.DirectorySeparatorChar;
-        
+
         static readonly string TempIconPath = Path.Combine(TempSourcePath, "iconTex.png");
         static readonly string TempBannerPath = Path.Combine(TempSourcePath, "bootTvTex.png");
         static readonly string TempDrcPath = Path.Combine(TempSourcePath, "bootDrcTex.png");
         static readonly string TempLogoPath = Path.Combine(TempSourcePath, "bootLogoTex.png");
         static readonly string TempSoundPath = Path.Combine(TempSourcePath, "bootSound.wav");
-        
+
         string OGfilepath;
         string selectedOutputPath;
 
@@ -148,7 +146,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 IconPreviewBox.Load(iconUrl);
                 if (File.Exists(TempIconPath)) { File.Delete(TempIconPath); }
                 client.DownloadFile(IconPreviewBox.ImageLocation, TempIconPath);
-                
+
                 IconSourceDirectory.Text = "iconTex.png downloaded from Cucholix's Repo";
                 IconSourceDirectory.ForeColor = Color.Black;
                 FlagIconSpecified = true;
@@ -156,7 +154,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 BannerPreviewBox.Load(bannerUrl);
                 if (File.Exists(TempBannerPath)) { File.Delete(TempBannerPath); }
                 client.DownloadFile(BannerPreviewBox.ImageLocation, TempBannerPath);
-                
+
                 BannerSourceDirectory.Text = "bootTvTex.png downloaded from Cucholix's Repo";
                 BannerSourceDirectory.ForeColor = Color.Black;
                 FlagBannerSpecified = true;
@@ -192,7 +190,7 @@ namespace TeconMoon_s_WiiVC_Injector
                                 , MessageBoxIcon.Exclamation
                                 , MessageBoxDefaultButton.Button1
                                 , (MessageBoxOptions)0x40000);
-                LaunchProgram("appwiz.cpl", "", false);
+                                LaunchProgram("appwiz.cpl", "", false);
                 Environment.Exit(0);
             }
         }
@@ -383,7 +381,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 }
 
                 string inputId = Microsoft.VisualBasic.Interaction.InputBox("Enter your installed Wii Channel's 4-letter Title ID. If you don't know it, open a WAD for the channel in something like ShowMiiWads to view it.", "Enter your WAD's Title ID", "XXXX", 0, 0);
-                
+
                 if (string.IsNullOrEmpty(inputId))
                 {
                     GameSourceDirectory.ForeColor = Color.Red;
@@ -600,10 +598,10 @@ namespace TeconMoon_s_WiiVC_Injector
                     TitleIDInt = reader.ReadInt32();
                     reader.BaseStream.Position = 0x218;
                     GameType = reader.ReadInt64();
-                    
+
                     reader.BaseStream.Position = 0x220;
                     InternalGameName = ReadNullTerminatedString(reader);
-                    
+
                     reader.BaseStream.Position = 0x200;
                     CucholixRepoID = ReadNullTerminatedString(reader);
                 }
@@ -621,7 +619,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         FlagNKIT = false;
                         FlagNASOS = false;
                         uint startOffset = 0;
-                        
+
                         // NASOS check
                         if (idString == "WII5")
                         {
@@ -639,10 +637,10 @@ namespace TeconMoon_s_WiiVC_Injector
                         TitleIDInt = reader.ReadInt32();
                         reader.BaseStream.Position = startOffset + 0x18;
                         GameType = reader.ReadInt64();
-                        
+
                         reader.BaseStream.Position = startOffset + 0x20;
                         InternalGameName = ReadNullTerminatedString(reader);
-                        
+
                         reader.BaseStream.Position = startOffset + 0x00;
                         CucholixRepoID = ReadNullTerminatedString(reader);
 
@@ -665,7 +663,7 @@ namespace TeconMoon_s_WiiVC_Injector
             if ((SystemType == "wii" && GameType != WiiGameType) || (SystemType == "gcn" && GameType != GCGameType))
             {
                 string errorMsg = SystemType == "wii" ? "This is not a Wii image. It will not be loaded." : "This is not a GameCube image. It will not be loaded.";
-                
+
                 GameSourceDirectory.Text = "Game file has not been specified";
                 GameSourceDirectory.ForeColor = Color.Red;
                 FlagGameSpecified = false;
@@ -677,7 +675,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 CucholixRepoID = "";
                 PackedTitleLine1.Text = "";
                 PackedTitleIDLine.Text = "";
-                
+
                 MessageBox.Show(errorMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
                 return;
             }
@@ -685,7 +683,7 @@ namespace TeconMoon_s_WiiVC_Injector
             GameNameLabel.Text = InternalGameName;
             var GameTitle = StringUtil.RemoveSpecialChars(GameTdb.GetName(CucholixRepoID));
             PackedTitleLine1.Text = !string.IsNullOrEmpty(GameTitle) ? GameTitle : InternalGameName;
-            
+
             // Convert pulled Title ID Int to Hex for use with Wii U Title ID
             idBytes = BitConverter.GetBytes(TitleIDInt);
             if (!BitConverter.IsLittleEndian)
@@ -693,7 +691,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 Array.Reverse(idBytes);
             }
             TitleIDHex = BitConverter.ToString(idBytes).Replace("-", "");
-            
+
             if (SystemType == "dol")
             {
                 TitleIDLabel.Text = TitleIDHex;
@@ -745,8 +743,8 @@ namespace TeconMoon_s_WiiVC_Injector
 
                 if (Path.GetExtension(OpenIcon.FileName).Equals(".tga", StringComparison.OrdinalIgnoreCase))
                 {
-                LaunchProgram(Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe"), $"-i \"{OpenIcon.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"", true);
-                    
+                    LaunchProgram(Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe"), $"-i \"{OpenIcon.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"", true);
+
                     string convertedPng = Path.Combine(Path.GetDirectoryName(pngtemppath), Path.GetFileNameWithoutExtension(OpenIcon.FileName) + ".png");
                     File.Move(convertedPng, pngtemppath);
                 }
@@ -802,8 +800,8 @@ namespace TeconMoon_s_WiiVC_Injector
 
                 if (Path.GetExtension(OpenBanner.FileName).Equals(".tga", StringComparison.OrdinalIgnoreCase))
                 {
-                LaunchProgram(Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe"), $"-i \"{OpenBanner.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"", true);
-                    
+                    LaunchProgram(Path.Combine(TempToolsPath, "IMG", "tga2pngcmd.exe"), $"-i \"{OpenBanner.FileName}\" -o \"{Path.GetDirectoryName(pngtemppath)}\"", true);
+
                     string convertedPng = Path.Combine(Path.GetDirectoryName(pngtemppath), Path.GetFileNameWithoutExtension(OpenBanner.FileName) + ".png");
                     File.Move(convertedPng, pngtemppath);
                 }
@@ -879,7 +877,6 @@ namespace TeconMoon_s_WiiVC_Injector
             return false;
         }
 
-
         //Events for the "Optional Source Files" Tab
         private void GC2SourceButton_Click(object sender, EventArgs e)
         {
@@ -930,7 +927,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 {
                     pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootDrcTex.png";
                     if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                LaunchProgram(TempToolsPath + "IMG\\tga2pngcmd.exe", "-i \"" + OpenDrc.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"", true);
+                    LaunchProgram(TempToolsPath + "IMG\\tga2pngcmd.exe", "-i \"" + OpenDrc.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"", true);
                     File.Move(Path.GetDirectoryName(pngtemppath) + "\\" + Path.GetFileNameWithoutExtension(OpenDrc.FileName) + ".png", pngtemppath);
                 }
                 else
@@ -970,7 +967,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 {
                     pngtemppath = Path.GetTempPath() + "WiiVCInjector\\SOURCETEMP\\bootLogoTex.png";
                     if (File.Exists(pngtemppath)) { File.Delete(pngtemppath); }
-                LaunchProgram(TempToolsPath + "IMG\\tga2pngcmd.exe", "-i \"" + OpenLogo.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"", true);
+                    LaunchProgram(TempToolsPath + "IMG\\tga2pngcmd.exe", "-i \"" + OpenLogo.FileName + "\" -o \"" + Path.GetDirectoryName(pngtemppath) + "\"", true);
                     File.Move(Path.GetDirectoryName(pngtemppath) + "\\" + Path.GetFileNameWithoutExtension(OpenLogo.FileName) + ".png", pngtemppath);
                 }
                 else
@@ -1737,7 +1734,7 @@ namespace TeconMoon_s_WiiVC_Injector
             //Generate app.xml & meta.xml
             BuildStatus.Text = "Generating app.xml and meta.xml";
             BuildStatus.Refresh();
-            string[] AppXML = { "<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<app type=\"complex\" access=\"777\">", "  <version type=\"unsignedInt\" length=\"4\">16</version>", "  <os_version type=\"hexBinary\" length=\"8\">000500101000400A</os_version>", "  <title_id type=\"hexBinary\" length=\"8\">" + PackedTitleIDLine.Text + "</title_id>", "  <title_version type=\"hexBinary\" length=\"2\">0000</title_version>", "  <sdk_version type=\"unsignedInt\" length=\"4\">21204</sdk_version>", "  <app_type type=\"hexBinary\" length=\"4\">8000002E</app_type>", "  <group_id type=\"hexBinary\" length=\"4\">" + TitleIDHex + "</group_id>", "  <os_mask type=\"hexBinary\" length=\"32\">0000000000000000000000000000000000000000000000000000000000000000</os_mask>", "  <common_id type=\"hexBinary\" length=\"8\">0000000000000000</common_id>", "</app>"};
+            string[] AppXML = { "<?xml version=\"1.0\" encoding=\"utf-8\"?>", "<app type=\"complex\" access=\"777\">", "  <version type=\"unsignedInt\" length=\"4\">16</version>", "  <os_version type=\"hexBinary\" length=\"8\">000500101000400A</os_version>", "  <title_id type=\"hexBinary\" length=\"8\">" + PackedTitleIDLine.Text + "</title_id>", "  <title_version type=\"hexBinary\" length=\"2\">0000</title_version>", "  <sdk_version type=\"unsignedInt\" length=\"4\">21204</sdk_version>", "  <app_type type=\"hexBinary\" length=\"4\">8000002E</app_type>", "  <group_id type=\"hexBinary\" length=\"4\">" + TitleIDHex + "</group_id>", "  <os_mask type=\"hexBinary\" length=\"32\">0000000000000000000000000000000000000000000000000000000000000000</os_mask>", "  <common_id type=\"hexBinary\" length=\"8\">0000000000000000</common_id>", "</app>" };
             File.WriteAllLines(TempBuildPath + "code\\app.xml", AppXML);
             if (EnablePackedLine2.Checked)
             {
@@ -1755,13 +1752,13 @@ namespace TeconMoon_s_WiiVC_Injector
             //Convert PNG files to TGA
             BuildStatus.Text = "Converting all image sources to expected TGA specification...";
             BuildStatus.Refresh();
-                LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempIconPath + "\" -o \"" + TempBuildPath + "meta\" --width=128 --height=128 --tga-bpp=32 --tga-compression=none", true);
-                LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempBannerPath + "\" -o \"" + TempBuildPath + "meta\" --width=1280 --height=720 --tga-bpp=24 --tga-compression=none", true);
+            LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempIconPath + "\" -o \"" + TempBuildPath + "meta\" --width=128 --height=128 --tga-bpp=32 --tga-compression=none", true);
+            LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempBannerPath + "\" -o \"" + TempBuildPath + "meta\" --width=1280 --height=720 --tga-bpp=24 --tga-compression=none", true);
             if (FlagDrcSpecified == false)
             {
                 File.Copy(TempBannerPath, TempDrcPath);
             }
-                LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempDrcPath + "\" -o \"" + TempBuildPath + "meta\" --width=854 --height=480 --tga-bpp=24 --tga-compression=none", true);
+            LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempDrcPath + "\" -o \"" + TempBuildPath + "meta\" --width=854 --height=480 --tga-bpp=24 --tga-compression=none", true);
             if (FlagLogoSpecified)
             {
                 LaunchProgram(TempToolsPath + "IMG\\png2tgacmd.exe", "-i \"" + TempLogoPath + "\" -o \"" + TempBuildPath + "meta\" --width=170 --height=42 --tga-bpp=32 --tga-compression=none", true);
@@ -1791,7 +1788,7 @@ namespace TeconMoon_s_WiiVC_Injector
             {
                 if (FlagWBFS)
                 {
-                LaunchProgram(TempToolsPath + "EXE\\wbfs_file.exe", "\"" + OpenGame.FileName + "\" convert \"" + TempSourcePath + "wbfsconvert.iso\"", true);
+                    LaunchProgram(TempToolsPath + "EXE\\wbfs_file.exe", "\"" + OpenGame.FileName + "\" convert \"" + TempSourcePath + "wbfsconvert.iso\"", true);
                     OpenGame.FileName = TempSourcePath + "wbfsconvert.iso";
                 }
                 if (FlagNKIT || FlagNASOS)
@@ -1802,23 +1799,22 @@ namespace TeconMoon_s_WiiVC_Injector
                     }
                     BuildStatus.Text = "Unscrubbing game for NFS Conversion...";
                     BuildStatus.Refresh();
-                LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGame.FileName + "\"", true);
+                    LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGame.FileName + "\"", true);
                     OpenGame.FileName = TempSourcePath + "game.iso";
-                    if(FlagNKIT)
+                    if (FlagNKIT)
                         File.Move(Directory.GetFiles(TempToolsPath + "NKIT\\Processed\\Temp", "*.tmp")[0], OpenGame.FileName);
                     else
                         File.Move(Directory.GetFiles(TempToolsPath + "NKIT\\Processed\\Wii_MatchFail", "*.iso")[0], OpenGame.FileName);
-
 
                 }
                 if (DisableTrimming.Checked == false)
                 {
                     BuildStatus.Text = "Extracting game for NFS Conversion...";
                     BuildStatus.Refresh();
-                LaunchProgram(TempToolsPath + "WIT\\wit.exe", "extract " + "\"" + OpenGame.FileName + "\"" + " --DEST " + TempSourcePath + "ISOEXTRACT" + " --psel data,-update -ovv", true); // EXTRACT WII ISO
+                    LaunchProgram(TempToolsPath + "WIT\\wit.exe", "extract " + "\"" + OpenGame.FileName + "\"" + " --DEST " + TempSourcePath + "ISOEXTRACT" + " --psel data,-update -ovv", true); // EXTRACT WII ISO
                     if (ForceCC.Checked)
                     {
-                LaunchProgram(TempToolsPath + "EXE\\GetExtTypePatcher.exe", "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\" -nc", true);
+                        LaunchProgram(TempToolsPath + "EXE\\GetExtTypePatcher.exe", "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\" -nc", true);
                     }
                     if (WiiVMC.Checked)
                     {
@@ -1830,7 +1826,7 @@ namespace TeconMoon_s_WiiVC_Injector
                                         , MessageBoxIcon.Information
                                         , MessageBoxDefaultButton.Button1
                                         , (MessageBoxOptions)0x40000);
-                LaunchProgram(TempToolsPath + "EXE\\wii-vmc.exe", "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\"", false);
+                                        LaunchProgram(TempToolsPath + "EXE\\wii-vmc.exe", "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\"", false);
                         HideProcess = true;
                         MessageBox.Show("Conversion will now continue..."
                                         , "Information"
@@ -1918,7 +1914,7 @@ namespace TeconMoon_s_WiiVC_Injector
                     }
                     BuildStatus.Text = "Unscrubbing game for NFS Conversion...";
                     BuildStatus.Refresh();
-                LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGame.FileName, true); // CONVERT TO ISO
+                    LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGame.FileName, true); // CONVERT TO ISO
                     File.Move(Directory.GetFiles(TempToolsPath + "NKIT\\Processed\\GameCube_MatchFail", "*.iso")[0], TempSourcePath + "TEMPISOBASE\\files\\game.iso");
                 }
                 else
@@ -1936,7 +1932,7 @@ namespace TeconMoon_s_WiiVC_Injector
                         }
                         BuildStatus.Text = "Unscrubbing second disc for NFS Conversion...";
                         BuildStatus.Refresh();
-                LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGC2.FileName + "\"", true); // CONVERT DISC 2 TO ISO
+                        LaunchProgram(TempToolsPath + "NKIT\\ConvertToISO.exe", "\"" + OpenGC2.FileName + "\"", true); // CONVERT DISC 2 TO ISO
                         File.Move(Directory.GetFiles(TempToolsPath + "NKIT\\Processed\\GameCube_MatchFail", "*.iso")[0], TempSourcePath + "TEMPISOBASE\\files\\disc2.iso");
                     }
                     else
@@ -1948,7 +1944,7 @@ namespace TeconMoon_s_WiiVC_Injector
                 Directory.Delete(TempSourcePath + "TEMPISOBASE", true);
                 OpenGame.FileName = TempSourcePath + "game.iso";
             }
-                LaunchProgram(TempToolsPath + "WIT\\wit.exe", "extract " + OpenGame.FileName + " --psel data --psel -update --files +tmd.bin --files +ticket.bin --dest " + TempSourcePath + "TIKTEMP" + " -vv1", true);
+            LaunchProgram(TempToolsPath + "WIT\\wit.exe", "extract " + OpenGame.FileName + " --psel data --psel -update --files +tmd.bin --files +ticket.bin --dest " + TempSourcePath + "TIKTEMP" + " -vv1", true);
             File.Copy(TempSourcePath + "TIKTEMP\\tmd.bin", TempBuildPath + "code\\rvlt.tmd");
             File.Copy(TempSourcePath + "TIKTEMP\\ticket.bin", TempBuildPath + "code\\rvlt.tik");
             Directory.Delete(TempSourcePath + "TIKTEMP", true);
@@ -1968,22 +1964,21 @@ namespace TeconMoon_s_WiiVC_Injector
             switch (SystemType)
             {
                 case "wii":
-                    LaunchProgram(nfsExe, "-enc" + nfspatchflag + lrpatchflag + " -iso \"" + OpenGame.FileName + "\"", true);
+                LaunchProgram(nfsExe, "-enc" + nfspatchflag + lrpatchflag + " -iso \"" + OpenGame.FileName + "\"", true);
                     break;
 
                 case "dol":
-                    LaunchProgram(nfsExe, "-enc -homebrew" + passpatch + " -iso \"" + OpenGame.FileName + "\"", true);
+                LaunchProgram(nfsExe, "-enc -homebrew" + passpatch + " -iso \"" + OpenGame.FileName + "\"", true);
                     break;
 
                 case "wiiware":
-                    LaunchProgram(nfsExe, "-enc -homebrew" + nfspatchflag + lrpatchflag + " -iso \"" + OpenGame.FileName + "\"", true);
+                LaunchProgram(nfsExe, "-enc -homebrew" + nfspatchflag + lrpatchflag + " -iso \"" + OpenGame.FileName + "\"", true);
                     break;
 
                 case "gcn":
-                    LaunchProgram(nfsExe, "-enc -homebrew -passthrough -iso \"" + OpenGame.FileName + "\"", true);
+                LaunchProgram(nfsExe, "-enc -homebrew -passthrough -iso \"" + OpenGame.FileName + "\"", true);
                     break;
             }
-
 
             if (DisableTrimming.Checked == false)
             {
@@ -2002,7 +1997,7 @@ namespace TeconMoon_s_WiiVC_Injector
             Directory.SetCurrentDirectory(TempRootPath);
             string sanitizedGameName = SanitizeFilename(PackedTitleLine1.Text);
             string outputPath = selectedOutputPath + "\\" + sanitizedGameName + " WUP-N-" + TitleIDText + "_" + PackedTitleIDLine.Text;
-                LaunchProgram(TempToolsPath + "JAR\\NUSPacker.exe", "-in BUILDDIR -out \"" + outputPath + "\" -encryptKeyWith " + WiiUCommonKey.Text, true);
+            LaunchProgram(TempToolsPath + "JAR\\NUSPacker.exe", "-in BUILDDIR -out \"" + outputPath + "\" -encryptKeyWith " + WiiUCommonKey.Text, true);
             BuildProgress.Value = 100;
             /////////////////////////////////
 

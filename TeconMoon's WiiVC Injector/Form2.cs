@@ -97,7 +97,7 @@ namespace TeconMoon_s_WiiVC_Injector
         {
             SpecifyDrive();
         }
-        
+
 
         //Changing config options
         public void NintendontOptions_SelectedIndexChanged(object sender, EventArgs e)
@@ -290,7 +290,7 @@ namespace TeconMoon_s_WiiVC_Injector
             NIN_VID_FORCE_DF = (4 << 16),
             NIN_VID_MASK = NIN_VID_AUTO | NIN_VID_FORCE | NIN_VID_NONE | NIN_VID_FORCE_DF,
 
-            NIN_VID_FORCE_PAL50 = (1 << 0), 
+            NIN_VID_FORCE_PAL50 = (1 << 0),
             NIN_VID_FORCE_PAL60 = (1 << 1),
             NIN_VID_FORCE_NTSC = (1 << 2),
             NIN_VID_FORCE_MPAL = (1 << 3),
@@ -381,7 +381,7 @@ namespace TeconMoon_s_WiiVC_Injector
             {
                 nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_PATCH_PAL50;
 
-                if(VideoTypeMode.SelectedIndex == 0 || VideoTypeMode.SelectedIndex == 3)
+                if (VideoTypeMode.SelectedIndex == 0 || VideoTypeMode.SelectedIndex == 3)
                 {
                     nintendontCfg.videoMode |= (uint)ninvideomode.NIN_VID_FORCE_PAL50;
                 }
@@ -542,7 +542,7 @@ namespace TeconMoon_s_WiiVC_Injector
             }
 
             // write it
-            using (BinaryWriter cfgFile = new BinaryWriter(File.Open(savePath, FileMode.Create) ) )
+            using (BinaryWriter cfgFile = new BinaryWriter(File.Open(savePath, FileMode.Create)))
             {
                 byte[] magicBytes = BitConverter.GetBytes(nintendontCfg.magicBytes);
                 byte[] version = BitConverter.GetBytes(nintendontCfg.version);
