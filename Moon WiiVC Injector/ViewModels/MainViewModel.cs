@@ -27,17 +27,17 @@ public partial class MainViewModel : ViewModelBase
     private const string TitleKeyExpectedHash = "F9-4B-D8-8E-BB-7A-A9-38-67-E6-30-61-5F-27-1C-9F";
     private const string AncastKeyExpectedHash = "31-8D-1F-9D-98-FB-08-E7-7C-7F-E1-77-AA-49-05-43";
 
-    private static readonly string TempRootPath = Path.Combine(Path.GetTempPath(), "Moon WiiVC Injector") + Path.DirectorySeparatorChar;
-    private static readonly string TempSourcePath = Path.Combine(TempRootPath, "SOURCETEMP") + Path.DirectorySeparatorChar;
-    private static readonly string TempBuildPath = Path.Combine(TempRootPath, "BUILDDIR") + Path.DirectorySeparatorChar;
-    private static readonly string TempToolsPath = Path.Combine(TempRootPath, "TOOLDIR") + Path.DirectorySeparatorChar;
+    private static string TempRootPath => Path.TrimEndingDirectorySeparator(Settings.Default.GetEffectiveTempPath()) + Path.DirectorySeparatorChar;
+    private static string TempSourcePath => Path.Combine(TempRootPath, "SOURCETEMP") + Path.DirectorySeparatorChar;
+    private static string TempBuildPath => Path.Combine(TempRootPath, "BUILDDIR") + Path.DirectorySeparatorChar;
+    private static string TempToolsPath => Path.Combine(TempRootPath, "TOOLDIR") + Path.DirectorySeparatorChar;
     private static readonly string JNUSToolDownloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "JNUSToolDownloads") + Path.DirectorySeparatorChar;
 
-    private static readonly string TempIconPath = Path.Combine(TempSourcePath, "iconTex.png");
-    private static readonly string TempBannerPath = Path.Combine(TempSourcePath, "bootTvTex.png");
-    private static readonly string TempDrcPath = Path.Combine(TempSourcePath, "bootDrcTex.png");
-    private static readonly string TempLogoPath = Path.Combine(TempSourcePath, "bootLogoTex.png");
-    private static readonly string TempSoundPath = Path.Combine(TempSourcePath, "bootSound.wav");
+    private static string TempIconPath => Path.Combine(TempSourcePath, "iconTex.png");
+    private static string TempBannerPath => Path.Combine(TempSourcePath, "bootTvTex.png");
+    private static string TempDrcPath => Path.Combine(TempSourcePath, "bootDrcTex.png");
+    private static string TempLogoPath => Path.Combine(TempSourcePath, "bootLogoTex.png");
+    private static string TempSoundPath => Path.Combine(TempSourcePath, "bootSound.wav");
 
     private readonly IDialogService _dialogService;
     private readonly Task _setupTask;
@@ -213,7 +213,7 @@ public partial class MainViewModel : ViewModelBase
         {
             if (SetProperty(ref _packedTitleLine1, value))
             {
-                OnPackedTitleLine1Changed(value);
+                OnPackedTitleLine1Changed();
             }
         }
     }
@@ -240,7 +240,7 @@ public partial class MainViewModel : ViewModelBase
         {
             if (SetProperty(ref _packedTitleIDLine, value))
             {
-                OnPackedTitleIDLineChanged(value);
+                OnPackedTitleIDLineChanged();
             }
         }
     }
@@ -339,7 +339,7 @@ public partial class MainViewModel : ViewModelBase
         {
             if (SetProperty(ref _c2WPatchFlag, value))
             {
-                OnC2WPatchFlagChanged(value);
+                OnC2WPatchFlagChanged();
             }
         }
     }
@@ -753,9 +753,9 @@ public partial class MainViewModel : ViewModelBase
         UpdateChecklist();
     }
 
-    private void OnPackedTitleLine1Changed(string value) => UpdateChecklist();
-    private void OnPackedTitleIDLineChanged(string value) => UpdateChecklist();
-    private void OnC2WPatchFlagChanged(bool value)
+    private void OnPackedTitleLine1Changed() => UpdateChecklist();
+    private void OnPackedTitleIDLineChanged() => UpdateChecklist();
+    private void OnC2WPatchFlagChanged()
     {
         OnPropertyChanged(nameof(IsAncastKeyVisible));
         UpdateChecklist();
@@ -1490,10 +1490,11 @@ public partial class MainViewModel : ViewModelBase
                 var drive = new DriveInfo(TempRootPath);
                 long freeSpaceInBytes = drive.AvailableFreeSpace;
                 long limit = _systemType == "wii" ? (gamesize * 2 + 5000000000) : (gamesize * 2 + 6000000000);
+                AppLogger.DebugLog($"Disk space check for '{TempRootPath}' ({drive.Name}): {freeSpaceInBytes / (1024 * 1024 * 1024.0):F2} GB available, {limit / (1024 * 1024 * 1024.0):F2} GB needed.");
                 if (freeSpaceInBytes < limit)
                 {
                     var res = await _dialogService.ShowMessageAsync(
-                        "Your hard drive may be low on space. The conversion process involves temporary files that can amount to more than double the size of your game. Do you want to continue anyway?",
+                        $"Your drive holding temporary files ({drive.Name}) may be low on space:\n• Available: {freeSpaceInBytes / (1024 * 1024 * 1024.0):F1} GB\n• Recommended: {limit / (1024 * 1024 * 1024.0):F1} GB\n\nThe conversion process involves temporary files that can amount to more than double the size of your game. You can customize the Temporary Directory in Settings.\n\nDo you want to continue anyway?",
                         "Check your hard drive space", MessageBoxButtons.YesNo);
                     if (res == MessageBoxResult.No)
                     {
@@ -1504,7 +1505,10 @@ public partial class MainViewModel : ViewModelBase
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AppLogger.Warn($"Drive space check skipped or failed for '{TempRootPath}': {ex.Message}");
+            }
         }
 
         string selectedOutputPath = "";
@@ -1696,7 +1700,14 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     public async Task OpenSettingsAsync()
     {
+        string prevTemp = Settings.Default.GetEffectiveTempPath();
         await _dialogService.ShowSettingsDialogAsync();
+        string newTemp = Settings.Default.GetEffectiveTempPath();
+        if (!string.Equals(prevTemp, newTemp, StringComparison.OrdinalIgnoreCase))
+        {
+            AppLogger.Info($"Temporary directory changed to: {newTemp}");
+            await SetupEnvironmentAsync();
+        }
     }
 
     [RelayCommand]

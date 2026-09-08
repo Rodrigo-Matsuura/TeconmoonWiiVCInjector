@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Moon_WiiVC_Injector.Properties;
 using Moon_WiiVC_Injector.Services;
 
 namespace Moon_WiiVC_Injector.ViewModels;
@@ -184,7 +185,7 @@ public partial class SdCardViewModel : ViewModelBase
         string? driveLetter = GetSelectedDriveLetter();
         bool driveSpecified = !string.IsNullOrEmpty(driveLetter);
 
-        string downloadPath = Path.Combine(Path.GetTempPath(), "Moon WiiVC Injector", "SOURCETEMP", "Download");
+        string downloadPath = Path.Combine(Settings.Default.GetEffectiveTempPath(), "SOURCETEMP", "Download");
         string tempPath = Path.Combine(downloadPath, "apps", "nintendont");
         string sdPath = driveSpecified ? Path.Combine(driveLetter!, "apps", "nintendont") : string.Empty;
 

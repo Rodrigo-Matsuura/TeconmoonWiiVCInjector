@@ -30,10 +30,40 @@ internal sealed class Settings
 
     public string OutputPath { get; set; } = string.Empty;
     public string OutputPathFixed { get; set; } = string.Empty;
+    public string TempPath { get; set; } = string.Empty;
     public string WiiUCommonKey { get; set; } = string.Empty;
     public string TitleKey { get; set; } = string.Empty;
     public string AncastKey { get; set; } = string.Empty;
     public string BannersRepository { get; set; } = "https://raw.githubusercontent.com/UWUVCI-PRIME/UWUVCI-IMAGES/master/";
+
+    public static string GetDefaultTempPath()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(Path.GetTempPath(), "Moon WiiVC Injector");
+        }
+
+        // On Linux / macOS, /tmp is typically a tmpfs (in-memory RAM disk with strict quota).
+        // Use XDG cache directory which resides on physical persistent storage.
+        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrEmpty(userProfile))
+        {
+            return Path.Combine(userProfile, ".cache", "Moon WiiVC Injector", "temp");
+        }
+
+        // Fallback to /var/tmp which is on physical disk on Linux, unlike /tmp
+        return Path.Combine("/var", "tmp", "Moon WiiVC Injector");
+    }
+
+    public string GetEffectiveTempPath()
+    {
+        if (!string.IsNullOrWhiteSpace(TempPath))
+        {
+            return TempPath;
+        }
+
+        return GetDefaultTempPath();
+    }
 
     public void Save()
     {

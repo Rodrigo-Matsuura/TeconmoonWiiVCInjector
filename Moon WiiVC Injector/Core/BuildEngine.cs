@@ -380,10 +380,10 @@ public class BuildEngine(BuildOptions options, IProgress<(string Message, double
             if (_options.SystemType == "wii")
             {
                 string currentWiiGame = ogFilePath;
+                string convertedIso = Path.Combine(_options.TempSourcePath, "wbfsconvert.iso");
                 if (_options.FlagWbfs)
                 {
                     UpdateStatus("Converting WBFS file to ISO format...", 22);
-                    string convertedIso = Path.Combine(_options.TempSourcePath, "wbfsconvert.iso");
                     await LaunchProgramAsync(Path.Combine(_options.TempToolsPath, "WIT", "wit.exe"), $"copy \"{ogFilePath}\" --DEST \"{convertedIso}\" --iso", true, cancellationToken);
                     currentWiiGame = convertedIso;
                 }
@@ -396,6 +396,12 @@ public class BuildEngine(BuildOptions options, IProgress<(string Message, double
 
                     UpdateStatus("Extracting game ISO partitions...", 25);
                     await LaunchProgramAsync(Path.Combine(_options.TempToolsPath, "WIT", "wit.exe"), $"extract \"{currentWiiGame}\" --DEST \"{isoExtractDir}\" --psel data,-update -ovv", true, cancellationToken);
+
+                    // Free up 4.8 - 8.5 GB immediately before rebuilding the ISO to avoid running out of disk space
+                    if (_options.FlagWbfs && File.Exists(convertedIso))
+                    {
+                        FileUtil.SafeDeleteFile(convertedIso);
+                    }
 
                     bool forceCC = _options.NfsPatchFlag.Contains("-instantcc");
                     if (forceCC)
@@ -416,8 +422,8 @@ public class BuildEngine(BuildOptions options, IProgress<(string Message, double
                     File.Copy(currentWiiGame, gameIsoPath, true);
                 }
 
-                if (File.Exists(Path.Combine(_options.TempSourcePath, "wbfsconvert.iso")))
-                    File.Delete(Path.Combine(_options.TempSourcePath, "wbfsconvert.iso"));
+                if (File.Exists(convertedIso))
+                    FileUtil.SafeDeleteFile(convertedIso);
             }
             else if (_options.SystemType == "dol")
             {

@@ -50,6 +50,7 @@ public static class AppLogger
 
     public static void Info(string message) => Log(message, LogLevel.Info);
     public static void Warning(string message) => Log(message, LogLevel.Warning);
+    public static void Warn(string message) => Warning(message);
     public static void Error(string message, Exception? ex = null)
     {
         string fullMessage = ex != null ? $"{message} | Details: {ex.Message}" : message;

@@ -26,6 +26,13 @@ public partial class SettingsViewModel : ViewModelBase
         set => SetProperty(ref _outputDir, value);
     }
 
+    private string _tempDir = string.Empty;
+    public string TempDir
+    {
+        get => _tempDir;
+        set => SetProperty(ref _tempDir, value);
+    }
+
     public SettingsViewModel(IDialogService dialogService, Action closeAction)
     {
         _dialogService = dialogService;
@@ -37,6 +44,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         BannersRepository = Settings.Default.BannersRepository;
         OutputDir = Settings.Default.OutputPathFixed;
+        TempDir = Settings.Default.TempPath;
     }
 
     [RelayCommand]
@@ -50,10 +58,21 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task BrowseTempFolderAsync()
+    {
+        var path = await _dialogService.OpenFolderDialogAsync("Specify your temporary build folder");
+        if (!string.IsNullOrEmpty(path))
+        {
+            TempDir = path;
+        }
+    }
+
+    [RelayCommand]
     private void Save()
     {
         Settings.Default.BannersRepository = BannersRepository ?? string.Empty;
         Settings.Default.OutputPathFixed = OutputDir ?? string.Empty;
+        Settings.Default.TempPath = TempDir ?? string.Empty;
         Settings.Default.Save();
         _closeAction();
     }
