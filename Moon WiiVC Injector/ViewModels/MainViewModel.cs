@@ -515,7 +515,7 @@ public partial class MainViewModel : ViewModelBase
     }
 
     // UI Capability bindings
-    public string WindowTitle => $"Moon WiiVC Injector - [{GetType().Assembly.GetName().Version?.ToString(3) ?? "1.1.0"}]";
+    public string WindowTitle => $"Moon WiiVC Injector - [{GetType().Assembly.GetName().Version?.ToString(3) ?? "1.2.0"}]";
     public bool CanSelectGame => !IsWiiNAND;
     public bool IsGCSelected => IsGCRetail;
     public bool CanDownloadRepo => IsWiiRetail || IsGCRetail || IsWiiNAND;
